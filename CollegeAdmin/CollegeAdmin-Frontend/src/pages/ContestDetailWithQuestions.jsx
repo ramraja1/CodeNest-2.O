@@ -36,6 +36,10 @@ const handleEditQuestion = (qid) => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteType, setDeleteType] = useState("");
 
+  //server
+
+   const server=`${import.meta.env.VITE_SERVER}`;
+
 
   
 // state
@@ -52,7 +56,7 @@ const handleAddQuestion = () => setShowAddQuestion(true);
 
   async function fetchContestInfo() {
     try {
-      const res = await fetch(`http://localhost:5000/api/contests/${id}`, {
+      const res = await fetch(`${server}/api/contests/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -66,7 +70,7 @@ const handleAddQuestion = () => setShowAddQuestion(true);
   async function fetchContestQuestions() {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/questions?contestId=${id}`,
+        `${server}/api/questions?contestId=${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -100,7 +104,7 @@ const handleAddQuestion = () => setShowAddQuestion(true);
     if (deleteType === "contest") {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/contests/${deleteTarget}`,
+          `${server}/api/contests/${deleteTarget}`,
           {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}` },
@@ -118,7 +122,7 @@ const handleAddQuestion = () => setShowAddQuestion(true);
     } else if (deleteType === "question") {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/questions/${deleteTarget}`,
+          `${server}/api/questions/${deleteTarget}`,
           {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}` },

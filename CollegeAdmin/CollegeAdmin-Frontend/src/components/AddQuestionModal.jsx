@@ -16,7 +16,8 @@ export default function AddQuestionModal({ contestId, token, onClose, onQuestion
   const [testCases, setTestCases] = useState([{ input: "", expectedOutput: "", isHidden: false }]);
   const [loading, setLoading] = useState(false);
   const modalRef = useRef();
-
+    //server 
+   const server=`${import.meta.env.VITE_SERVER}`;
   // Accessibility: close on ESC
   useEffect(() => {
     const handleEsc = (e) => {
@@ -41,7 +42,7 @@ export default function AddQuestionModal({ contestId, token, onClose, onQuestion
     if (!title.trim()) return toast.error("Title is required");
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:5000/api/questions", {
+      const res = await fetch(`${server}/api/questions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

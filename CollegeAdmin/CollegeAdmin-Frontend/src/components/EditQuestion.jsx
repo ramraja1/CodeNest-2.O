@@ -18,7 +18,8 @@ export default function EditQuestionModal({ questionId, token, onClose, onQuesti
   const [scrolled, setScrolled] = useState(false);
 
   const formRef = useRef(null);
-
+  //server 
+   const server=`${import.meta.env.VITE_SERVER}`;
   // Detect scroll for header shadow
   useEffect(() => {
     const handleScroll = () => {
@@ -32,7 +33,7 @@ export default function EditQuestionModal({ questionId, token, onClose, onQuesti
   useEffect(() => {
     const fetchQuestion = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/questions/${questionId}`, {
+        const res = await fetch(`${server}/api/questions/${questionId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -79,7 +80,7 @@ export default function EditQuestionModal({ questionId, token, onClose, onQuesti
     if (!title.trim()) return toast.error("Title is required");
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/questions/${questionId}`, {
+      const res = await fetch(`${server}/api/questions/${questionId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

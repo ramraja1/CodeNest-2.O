@@ -9,6 +9,9 @@ export default function EditBatchModal({ batch, onClose, onSaved }) {
 
   const token = localStorage.getItem("token");
 
+    //server 
+   const server=`${import.meta.env.VITE_SERVER}`;
+
   // In case `batch` prop changes dynamically
   useEffect(() => {
     setName(batch?.name || "");
@@ -25,7 +28,7 @@ export default function EditBatchModal({ batch, onClose, onSaved }) {
 
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/batches/${batch._id}`, {
+      const res = await fetch(`${server}/api/batches/${batch._id}`, {
         method: "PUT", // ✅ Update instead of create
         headers: {
           Authorization: `Bearer ${token}`,

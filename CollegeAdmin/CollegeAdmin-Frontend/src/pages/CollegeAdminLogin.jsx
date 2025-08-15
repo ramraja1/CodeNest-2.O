@@ -13,6 +13,9 @@ export default function CollegeAdminAuthPage() {
   const [loginPassword, setLoginPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
 
+  // server
+   const server=`${import.meta.env.VITE_SERVER}`;
+
   // Register state
   const [regName, setRegName] = useState("");
   const [regEmail, setRegEmail] = useState("");
@@ -29,7 +32,7 @@ export default function CollegeAdminAuthPage() {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/auth/college/login",
+         `${server}/api/auth/college/login`,
         { email: loginEmail, password: loginPassword },
         { headers: { "Content-Type": "application/json" } }
       );
@@ -54,7 +57,7 @@ export default function CollegeAdminAuthPage() {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/auth/college/register",
+        `${server}/api/auth/college/register`,
         {
           collegeName: regName,
           email: regEmail,

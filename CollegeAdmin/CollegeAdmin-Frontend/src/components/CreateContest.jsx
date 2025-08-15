@@ -10,7 +10,8 @@ export default function CreateContest({ batchId, handleCreatetoggle, onContestCr
   const [tags, setTags] = useState("");
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("token");
-
+  //server 
+   const server=`${import.meta.env.VITE_SERVER}`;
   // Format datetime-local
   const formatDateForInput = useCallback((dateStr) => {
     const date = new Date(dateStr);
@@ -57,7 +58,7 @@ export default function CreateContest({ batchId, handleCreatetoggle, onContestCr
     try {
       setLoading(true);
 
-      const res = await fetch("http://localhost:5000/api/contests", {
+      const res = await fetch(`${server}/api/contests`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

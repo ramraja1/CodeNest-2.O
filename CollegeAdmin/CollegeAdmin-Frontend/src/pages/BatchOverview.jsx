@@ -23,6 +23,10 @@ export default function BatchOverview() {
   const handleEditBatchToggle = () => setEditBatchToggle(!editBatchToggle);
   const handleDeleteBatch = () => setDeleteBatchToggle(!deleteBatchToggle);
 
+  //server
+
+   const server=`${import.meta.env.VITE_SERVER}`;
+
   const [batch, setBatch] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -31,7 +35,7 @@ export default function BatchOverview() {
   async function fetchBatchDetails() {
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/batches/${id}`, {
+      const res = await fetch(`${server}/api/batches/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -51,7 +55,7 @@ export default function BatchOverview() {
 
   async function deleteBatch() {
     try {
-      const res = await fetch(`http://localhost:5000/api/batches/${id}`, {
+      const res = await fetch(`${server}/api/batches/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });

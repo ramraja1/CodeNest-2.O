@@ -16,11 +16,12 @@ export default function CollegeAdminDashboard() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
+  const server=`${import.meta.env.VITE_SERVER}`;
   useEffect(() => {
     async function fetchData() {
       try {
         const res = await fetch(
-          "http://localhost:3002/api/collegeadmin/stats",
+         `${server}/api/collegeadmin/stats`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const data = await res.json();

@@ -13,12 +13,14 @@ export default function CollegeAdminContestDashboard() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
+  //serve from env
+   const server=`${import.meta.env.VITE_SERVER}`;
   // Fetch only contests linked to this batch
   const fetchContests = async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`http://localhost:5000/api/contests?batchId=${batchId}`, {
+      const res = await fetch(`${server}/api/contests?batchId=${batchId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();

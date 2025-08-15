@@ -9,6 +9,9 @@ export default function AddBatchModal({ onClose, onSaved }) {
 
   const token = localStorage.getItem("token");
 
+  //server 
+   const server=`${import.meta.env.VITE_SERVER}`;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) {
@@ -17,7 +20,7 @@ export default function AddBatchModal({ onClose, onSaved }) {
     }
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:5000/api/batches", {
+      const res = await fetch(`${server}/api/batches`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

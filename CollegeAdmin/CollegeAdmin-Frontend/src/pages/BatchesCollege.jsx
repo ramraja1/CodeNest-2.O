@@ -24,7 +24,7 @@ export default function ManageBatchesDashboard() {
   const fetchBatches = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/batches", {
+      const res = await fetch(`${server}/api/batches`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();

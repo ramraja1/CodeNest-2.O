@@ -13,6 +13,9 @@ export default function EditContest({ contestId, initialData, onClose, onContest
 
   const token = localStorage.getItem("token");
 
+    //server 
+   const server=`${import.meta.env.VITE_SERVER}`;
+
   // Fetch contest before editing (if initialData isn't passed)
   useEffect(() => {
     if (initialData) {
@@ -33,7 +36,7 @@ export default function EditContest({ contestId, initialData, onClose, onContest
 
   const fetchContestData = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/contests/${contestId}`, {
+      const res = await fetch(`${server}/api/contests/${contestId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -66,7 +69,7 @@ export default function EditContest({ contestId, initialData, onClose, onContest
     }
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/contests/${contestId}`, {
+      const res = await fetch(`${server}/api/contests/${contestId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
