@@ -19,6 +19,7 @@ export default function ManageBatchesDashboard() {
   const handleAddBatches =()=>{
         setAddToggle(false);
   }
+  const server=`${import.meta.env.VITE_SERVER}`;
 
   // Fetch all batches for this college
   const fetchBatches = async () => {

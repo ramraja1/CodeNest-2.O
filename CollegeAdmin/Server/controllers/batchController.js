@@ -47,6 +47,7 @@ export const createBatch = async (req, res) => {
 export const getBatches = async (req, res) => {
   try {
     const collegeId = req.user.collegeId;
+    
 
     const batches = await Batch.find({ collegeId }).lean();
 
