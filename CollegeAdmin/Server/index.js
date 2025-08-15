@@ -8,8 +8,11 @@ import contestRoutes from "./routes/contestRoutes.js";
 
 // Import Routes
 import collegeRoutes from './routes/collegeRoutes.js';
+import questionRoutes from './routes/questionRoutes.js'
 // If you have existing Super Admin auth routes
 import authRoutes from './routes/authRoutes.js';
+import batchesRoutes from './routes/batchRoutes.js'
+import question from './models/question.js';
 
 dotenv.config();
 
@@ -34,8 +37,13 @@ app.use('/api/auth/college', authRoutes);
 
 // College module (register/approve/login College Admin)
 app.use('/api/college', collegeRoutes);
+//batches
+app.use("/api/batches", batchesRoutes);
+
 //===contest ===
 app.use("/api/contests", contestRoutes);
+//question
+app.use("/api/questions",questionRoutes);
 
 // ===== Health Check =====
 app.get('/', (req, res) => {

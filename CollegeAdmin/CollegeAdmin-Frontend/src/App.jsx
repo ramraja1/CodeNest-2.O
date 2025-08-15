@@ -10,6 +10,9 @@ import CollegeAdminLogin from "./pages/CollegeAdminLogin";
 import CollegeAdminDashboard from "./pages/CollegeAdminDashboard";
 import CollegeAdminContestDashboard from "./pages/ContestDashboard";
 import CreateContest from "./components/CreateContest";
+import ContestDetailWithQuestions from "./pages/ContestDetailWithQuestions";
+import CollegeAdminBatchesDashboard from "./pages/BatchesCollege";
+import BatchOverview from "./pages/BatchOverview";
 /* ----------------------
    PRIVATE ROUTE
 ---------------------- */
@@ -147,22 +150,40 @@ function AppContent() {
 
             {/*contest  routes*/}
             <Route
-            path="/manage-contest"
+             path="/manage-batches/:batchId/manage-contest"
             element={
               <PrivateRoute role="collegeadmin">
                 <CollegeAdminContestDashboard />
               </PrivateRoute>
             }
           />
+            <Route
+            path="/manage-batches"
+            element={
+              <PrivateRoute role="collegeadmin">
+                <CollegeAdminBatchesDashboard />
+              </PrivateRoute>
+            }
+          />
 
-          <Route
-          path="/create-contest"
+           <Route
+          path="/manage-batches/:id"
           element={
             <PrivateRoute role="collegeadmin">
-              <CreateContest />
+              <BatchOverview />
             </PrivateRoute>
           }
         />
+
+        <Route
+          path="/manage-batches/:batchId/contest/:id"
+          element={
+            <PrivateRoute role="collegeadmin">
+              <ContestDetailWithQuestions />
+            </PrivateRoute>
+          }
+        />
+
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,58 +1,46 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { FaArrowLeft, FaPlus, FaEdit, FaTrash } from "react-icons/fa";
+import { FaArrowLeft, FaPlus } from "react-icons/fa";
+import CreateContest from "../components/CreateContest";
 
 export default function CollegeAdminContestDashboard() {
+  const { batchId } = useParams();
   const [contests, setContests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [createToggle, setCreateToggle] = useState(false);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    async function fetchContests() {
-      setLoading(true);
-      setError("");
-      try {
-        const res = await fetch("http://localhost:5000/api/contests", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (res.ok) {
-          setContests(data.sort((a, b) => new Date(a.startTime) - new Date(b.startTime)));
-        } else {
-          setError(data.message || "Failed to load contests");
-        }
-      } catch {
-        setError("Error connecting to server");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchContests();
-  }, [token]);
-
-  const handleCreate = () => navigate("/create-contest");
-  const handleEdit = (id) => navigate(`/college-admin/edit-contest/${id}`);
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this contest?")) return;
+  // Fetch only contests linked to this batch
+  const fetchContests = async () => {
+    setLoading(true);
+    setError("");
     try {
-      const res = await fetch(`http://localhost:5000/api/contests/${id}`, {
-        method: "DELETE",
+      const res = await fetch(`http://localhost:5000/api/contests?batchId=${batchId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      const data = await res.json();
       if (res.ok) {
-        setContests((prev) => prev.filter((contest) => contest._id !== id));
-        toast.success("Contest deleted");
+        setContests(data.sort((a, b) => new Date(a.startTime) - new Date(b.startTime)));
       } else {
-        const data = await res.json();
-        toast.error(data.message || "Failed to delete contest");
+        setError(data.message || "Failed to load contests");
       }
     } catch {
-      toast.error("Error connecting to server");
+      setError("Error connecting to server");
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchContests();
+    // eslint-disable-next-line
+  }, [token, batchId]);
+
+  const handleCreatetoggle = () => setCreateToggle(false);
+  const handleCreate = () => setCreateToggle(true);
 
   if (loading) {
     return <div className="p-6 text-center text-gray-600">Loading contests...</div>;
@@ -60,18 +48,18 @@ export default function CollegeAdminContestDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen">
-      {/* Back button */}
+      {/* Back Button */}
       <div className="flex items-center mb-8">
         <button
-          onClick={() => navigate("/college-dashboard")}
+          onClick={() => navigate(`/manage-batches/${batchId}`)}
           className="flex items-center text-gray-500 hover:text-gray-800 transition text-sm font-medium"
         >
-          <FaArrowLeft className="mr-2" /> Back to Home
+          <FaArrowLeft className="mr-2" /> Back to Your Batch
         </button>
       </div>
 
       {/* Heading */}
-      <h1 className="text-3xl font-bold mb-10 text-gray-800">Manage Contests</h1>
+      <h1 className="text-3xl font-bold mb-10 text-gray-800">Manage Contests (Batch: {batchId})</h1>
 
       {error && <p className="text-red-600 mb-4">{error}</p>}
 
@@ -88,11 +76,12 @@ export default function CollegeAdminContestDashboard() {
 
         {/* Contest Cards */}
         {contests.length === 0 ? (
-          <p className="col-span-full text-gray-500">No contests created yet.</p>
+          <p className="col-span-full text-gray-500">No contests created yet for this batch.</p>
         ) : (
           contests.map((contest) => (
             <div
               key={contest._id}
+              onClick={() => navigate(`/manage-batches/${batchId}/contest/${contest._id}`)}
               className="bg-white rounded-2xl shadow-sm hover:shadow-md hover:scale-[1.02] transition-transform duration-200 p-6 flex flex-col justify-between min-h-[220px]"
             >
               <div>
@@ -100,8 +89,10 @@ export default function CollegeAdminContestDashboard() {
                   {contest.title}
                 </h2>
                 <p className="text-xs text-gray-500 mb-3">
-                  {new Date(contest.startTime).toLocaleString()} ―{" "}
-                  {new Date(contest.endTime).toLocaleString()}
+                  Start Time : {new Date(contest.startTime).toLocaleString()}
+                </p>
+                <p className="text-xs text-gray-500 mb-3">
+                  End Time : {new Date(contest.endTime).toLocaleString()}
                 </p>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {contest.tags.map((tag, idx) => (
@@ -114,24 +105,19 @@ export default function CollegeAdminContestDashboard() {
                   ))}
                 </div>
               </div>
-              <div className="flex justify-between items-center mt-2">
-                <button
-                  onClick={() => handleEdit(contest._id)}
-                  className="flex items-center gap-1 text-blue-600 hover:underline text-sm font-medium"
-                >
-                  <FaEdit /> Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(contest._id)}
-                  className="flex items-center gap-1 text-red-600 hover:underline text-sm font-medium"
-                >
-                  <FaTrash /> Delete
-                </button>
-              </div>
             </div>
           ))
         )}
       </div>
+
+      {/* Create Contest Modal */}
+      {createToggle && (
+        <CreateContest
+          batchId={batchId}
+          handleCreatetoggle={handleCreatetoggle}
+          onContestCreated={fetchContests}
+        />
+      )}
     </div>
   );
 }

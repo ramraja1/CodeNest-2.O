@@ -7,6 +7,7 @@ import {
   FaTasks,
   FaSignOutAlt,
   FaPlusCircle,
+  FaUsersCog,
 } from "react-icons/fa";
 
 export default function CollegeAdminDashboard() {
@@ -103,13 +104,16 @@ export default function CollegeAdminDashboard() {
             buttonLabel="Manage Contest"
             onClick={() => navigate("/manage-contest")}
           />
+                
           <ActionCard
-            title="Manage Students"
-            description="View and manage registered students in your college."
-            icon={<FaUsers />}
-            buttonLabel="View Students"
-            onClick={() => navigate("/college-admin/students")}
+            title="Manage Batches"
+            description="Create and manage batches for your college (e.g., CSE 2025, MCA 2026)."
+            icon={<FaUsersCog />}
+            buttonLabel="Manage Batches"
+            onClick={() => navigate("/manage-batches")}
           />
+     
+
         </div>
 
         {/* Future Section: Recent Activity */}
