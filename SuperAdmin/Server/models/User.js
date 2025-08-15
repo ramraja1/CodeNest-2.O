@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema({
     default: 'student' 
   },
   collegeId: { type: mongoose.Schema.Types.ObjectId, ref: 'College', default: null },
+  batches: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Batch' }], // array of batch IDs
   createdAt: { type: Date, default: Date.now }
 });
 
