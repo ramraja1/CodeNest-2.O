@@ -15,9 +15,9 @@ connectDB();
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use("/",(req,res)=>{
+app.get("/",(req,res)=>{
   res.send("i am alive");
-})
+});
 
 app.use("/api/student", authRoutes);
 app.use("/api/batches", batchRoutes);
