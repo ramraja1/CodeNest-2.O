@@ -16,6 +16,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
 
+import dotenv from 'dotenv'
+
+
+// importing components
+import JoinBatchModal from "../components/JoinBatchModal";
+
 export default function StudentDashboard() {
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,6 +30,9 @@ export default function StudentDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
+  //join batch
+  const [joinBatchToggle,setJoinBatchToggle]=useState(false);
+
   // Separate states for each dropdown
   const [practiceOpen, setPracticeOpen] = useState(false);
   const [contestOpen, setContestOpen] = useState(false);
@@ -31,6 +40,10 @@ export default function StudentDashboard() {
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+
+  // server
+
+      const server=`${import.meta.env.VITE_SERVER}`;
 
   useEffect(() => {
     if (!token) {
@@ -56,12 +69,14 @@ export default function StudentDashboard() {
   const fetchBatches = async (id) => {
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/students/${id}/batches`, {
+     
+      const res = await fetch(`${server}/api/batches/my`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
+   
       if (res.ok) {
-        setBatches(data.batches || []);
+        setBatches(data|| []);
       } else {
         toast.error(data.message || "Failed to load batches");
       }
@@ -294,7 +309,7 @@ export default function StudentDashboard() {
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <h1 className="text-3xl font-bold text-gray-900">Your Batches</h1>
             <button
-              onClick={() => navigate("/student-join-batch")}
+              onClick={()=>setJoinBatchToggle(!joinBatchToggle)}
               className="bg-emerald-600 text-white px-4 py-2 rounded shadow hover:bg-emerald-700 transition"
             >
               Join Batch with Code
@@ -306,30 +321,27 @@ export default function StudentDashboard() {
               You have not joined any batches yet.
             </p>
           ) : (
-            <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {batches.map((batch) => (
-                <div
-                  key={batch._id}
-                  className="bg-white rounded-xl shadow p-6 hover:shadow-lg transition cursor-pointer flex flex-col justify-between"
-                  onClick={() => navigate(`/student/batch/${batch._id}/contests`)}
-                >
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                      {batch.name}
-                    </h2>
-                    <p className="text-gray-600 mb-4">
-                      {batch.description || "No description provided."}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 text-gray-700 text-sm">
-                    <FaUsers className="text-blue-600" />
-                    <span>{batch.totalStudents || "N/A"} students</span>
-                    <FaTasks className="text-emerald-600 ml-auto" />
-                    <span>{batch.totalContests || "N/A"} contests</span>
-                  </div>
-                </div>
-              ))}
-            </section>
+          <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {batches.map(batch => (
+    <div
+      key={batch._id}
+      className="bg-white rounded-xl shadow p-6 hover:shadow-lg transition cursor-pointer flex flex-col justify-between"
+      onClick={() => navigate(`/student/batch/${batch._id}`)}
+    >
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">{batch.name}</h2>
+        <p className="text-gray-600 mb-4">{batch.description || "No description provided."}</p>
+      </div>
+      <div className="flex items-center gap-3 text-gray-700 text-sm">
+        <FaUsers className="text-blue-600" />
+        <span>{batch.students?.length || 0} students</span>
+        <FaTasks className="text-emerald-600 ml-auto" />
+        <span>{"N/A"} contests</span> {/* Adjust if have contests count */}
+      </div>
+    </div>
+  ))}
+</section>
+
           )}
 
           {/* Upcoming Contests */}
@@ -341,6 +353,16 @@ export default function StudentDashboard() {
           </section>
         </div>
       </div>
+
+            {
+          joinBatchToggle && (
+            <JoinBatchModal 
+              onClose={() => setJoinBatchToggle(false)} 
+              onSaved={fetchBatches} // Optional: refresh after joining
+            />
+          )
+        }
+
     </div>
   );
 }

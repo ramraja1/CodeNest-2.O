@@ -4,9 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { ArrowLeft } from "lucide-react";
 import axios from "axios";
-import { GoogleLogin } from '@react-oauth/google';
-import dotenv from 'dotenv'
-
+import { GoogleLogin } from "@react-oauth/google";
+import dotenv from "dotenv";
 
 export default function UserAuthPage() {
   const [showRegister, setShowRegister] = useState(true);
@@ -23,8 +22,8 @@ export default function UserAuthPage() {
   const [regLoading, setRegLoading] = useState(false);
 
   const navigate = useNavigate();
-    // sever
-    const server=`${import.meta.env.VITE_SERVER}`;
+  // sever
+  const server = `${import.meta.env.VITE_SERVER}`;
   // Handle Login
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -37,7 +36,7 @@ export default function UserAuthPage() {
       );
       localStorage.setItem("token", res.data.token);
       toast.success("Login Successful");
-      navigate("/user-dashboard");
+      navigate("/student");
     } catch (err) {
       toast.error(err.response?.data?.message || "Login failed");
     } finally {
@@ -46,29 +45,28 @@ export default function UserAuthPage() {
   };
 
   // Handle Register
- const handleRegister = async (e) => {
-  e.preventDefault();
-  setRegLoading(true);
-  try {
-    const res = await axios.post(
-      `${server}/api/student/register`,
-      {
-        name: regName,
-        email: regEmail,
-        password: regPassword,
-      },
-      { headers: { "Content-Type": "application/json" } }
-    );
-    localStorage.setItem("token", res.data.token);
-    toast.success("Registration Successful");
-    navigate("/user-dashboard");
-  } catch (err) {
-    toast.error(err.response?.data?.message || "Registration failed");
-  } finally {
-    setRegLoading(false);
-  }
-};
-
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setRegLoading(true);
+    try {
+      const res = await axios.post(
+        `${server}/api/student/register`,
+        {
+          name: regName,
+          email: regEmail,
+          password: regPassword,
+        },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      localStorage.setItem("token", res.data.token);
+      toast.success("Registration Successful");
+      navigate("/student");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Registration failed");
+    } finally {
+      setRegLoading(false);
+    }
+  };
 
   // Google Login success handler
   const onGoogleSuccess = async (credentialResponse) => {
@@ -80,7 +78,7 @@ export default function UserAuthPage() {
       );
       localStorage.setItem("token", res.data.token);
       toast.success("Google login successful");
-      navigate("/user-dashboard");
+      navigate("/student");
     } catch (error) {
       toast.error("Google login failed");
     }
@@ -100,7 +98,10 @@ export default function UserAuthPage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">
               Create Your Account
             </h1>
-            <form onSubmit={handleRegister} className="space-y-6 w-full max-w-md">
+            <form
+              onSubmit={handleRegister}
+              className="space-y-6 w-full max-w-md"
+            >
               <input
                 type="text"
                 placeholder="Name"
