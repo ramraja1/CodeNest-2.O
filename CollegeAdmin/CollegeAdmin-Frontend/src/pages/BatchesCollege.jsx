@@ -9,6 +9,7 @@ import {
 } from "react-icons/fa";
 import AddBatchModal from "../components/AddBatchModel";
 import BatchOverview from "./BatchOverview";
+import BatchSkeleton from "../components/skeleton/BatchSkeleton"
 
 export default function ManageBatchesDashboard() {
   const [batches, setBatches] = useState([]);
@@ -47,11 +48,10 @@ export default function ManageBatchesDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
-      
       {/* Back Button */}
       <div className="flex items-center mb-6">
         <button
-          onClick={() => navigate("/college-admin/dashboard")}
+          onClick={() => navigate("/college-dashboard")}
           className="flex items-center text-gray-500 hover:text-gray-800 transition text-sm font-medium"
         >
           <FaArrowLeft className="mr-2" /> Back to Home
@@ -69,7 +69,7 @@ export default function ManageBatchesDashboard() {
           </p>
         </div>
         <button
-          onClick={()=>setAddToggle(true)}
+          onClick={() => setAddToggle(true)}
           className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg shadow"
         >
           <FaPlus /> Add Batch
@@ -78,14 +78,14 @@ export default function ManageBatchesDashboard() {
 
       {/* Batch Grid */}
       {loading ? (
-        <div className="text-center text-gray-500 py-10">Loading batches...</div>
+        <BatchSkeleton />
       ) : batches.length === 0 ? (
         <div className="text-center text-gray-400 bg-white p-10 rounded-xl shadow-sm">
           No batches created yet.
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {batches.map(batch => (
+          {batches.map((batch) => (
             <div
               key={batch._id}
               className="bg-white rounded-xl border shadow-sm hover:shadow-md hover:scale-[1.02] transition-transform duration-200 cursor-pointer flex flex-col justify-between"
@@ -115,12 +115,8 @@ export default function ManageBatchesDashboard() {
       )}
 
       {addToggle && (
-        <AddBatchModal 
-          onClose={handleAddBatches}
-          onSaved={fetchBatches}
-        />
-)}
-
+        <AddBatchModal onClose={handleAddBatches} onSaved={fetchBatches} />
+      )}
     </div>
   );
 }

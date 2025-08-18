@@ -6,9 +6,23 @@ import { motion } from "framer-motion";
 export default function AdminLanding() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const handleLogin=()=>{
-      navigate("/college-login")
-  }
+
+  const handleLogin = () => {
+    setMobileMenuOpen(false); // close mobile menu on navigation
+    navigate("/college-login");
+  };
+
+  // Close mobile menu on window resize to desktop
+  React.useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth >= 768 && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    }
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [mobileMenuOpen]);
 
   return (
     <div className="relative w-full min-h-screen bg-white text-gray-900">
@@ -27,10 +41,21 @@ export default function AdminLanding() {
           {/* Desktop Menu */}
           <ul className="hidden md:flex items-center gap-8 text-sm text-gray-200">
             {["Explore", "Product", "Docs", "Sign in"].map((item) => (
-              <li key={item} className="hover:text-white cursor-pointer">{item}</li>
+              <li
+                key={item}
+                className="hover:text-white cursor-pointer"
+                tabIndex={0}
+                role="button"
+                onKeyDown={(e) => { if(e.key === 'Enter') handleLogin(); }}
+              >
+                {item}
+              </li>
             ))}
             <li>
-              <button className="px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-600 font-semibold" onClick={handleLogin}>
+              <button
+                className="px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-600 font-semibold"
+                onClick={handleLogin}
+              >
                 Create Account
               </button>
             </li>
@@ -39,27 +64,41 @@ export default function AdminLanding() {
           {/* Mobile Menu Toggle */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden rounded-lg px-3 py-2 bg-white/10"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
+            className="md:hidden rounded-lg px-3 py-2 bg-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition"
           >
-            ☰
+            {mobileMenuOpen ? "✕" : "☰"}
           </button>
         </nav>
 
         {/* Mobile Menu Drawer */}
         {mobileMenuOpen && (
-          <div className="fixed inset-x-0 top-16 bg-gray-900/95 backdrop-blur-md text-white md:hidden py-4 z-50">
+          <div
+            id="mobile-menu"
+            role="menu"
+            aria-label="Mobile main menu"
+            className="fixed inset-x-0 top-16 bg-gray-900/95 backdrop-blur-md text-white md:hidden py-4 z-50 shadow-lg"
+          >
             <ul className="flex flex-col items-center gap-4">
               {["Explore", "Product", "Docs", "Sign in"].map((item) => (
                 <li
                   key={item}
                   className="hover:text-emerald-300 cursor-pointer"
+                  role="menuitem"
+                  tabIndex={0}
                   onClick={() => setMobileMenuOpen(false)}
+                  onKeyDown={(e) => { if(e.key === 'Enter') setMobileMenuOpen(false); }}
                 >
                   {item}
                 </li>
               ))}
               <li>
-                <button className="px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-600 font-semibold" onClick={handleLogin}>
+                <button
+                  className="px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-600 font-semibold"
+                  onClick={handleLogin}
+                >
                   Create Account
                 </button>
               </li>
@@ -69,20 +108,16 @@ export default function AdminLanding() {
       </header>
 
       {/* ===== HERO ===== */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden pt-24 md:pt-28">
         {/* Background Shapes */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-gray-900"
-        >
+        <div aria-hidden="true" className="absolute inset-0 bg-gray-900">
           <div className="absolute -left-40 -top-20 h-72 w-96 rotate-6 bg-gray-800/70 rounded-3xl" />
           <div className="absolute left-28 top-10 h-72 w-96 -rotate-3 bg-gray-800/50 rounded-3xl" />
         </div>
 
         {/* Content */}
-        <div className="relative z-10 mx-auto max-w-7xl pt-28 md:pt-32 pb-24 md:pb-40 px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 mx-auto max-w-7xl pb-24 md:pb-40 px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-            
             {/* Diagram */}
             <motion.div
               initial={{ opacity: 0, x: -40, rotate: -3 }}
@@ -103,7 +138,9 @@ export default function AdminLanding() {
                     {[1, 2, 3, 4].map((_, idx) => (
                       <div
                         key={idx}
-                        className={`h-3 rounded bg-gray-200 ${idx % 2 ? "w-3/4" : "w-full"}`}
+                        className={`h-3 rounded bg-gray-200 ${
+                          idx % 2 ? "w-3/4" : "w-full"
+                        }`}
                       />
                     ))}
                     <div className="mt-4 h-28 rounded-xl bg-gray-100" />
@@ -118,17 +155,18 @@ export default function AdminLanding() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.9 }}
-              className="text-white order-1 md:order-2 z-20"
+              className="text-white order-1 md:order-2 z-20 px-4 md:px-0"
             >
               <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">
-                A New Way to Manage <br className="hidden sm:block" /> Your Coding Platform
+                A New Way to Manage <br className="hidden sm:block" /> Your Coding
+                Platform
               </h1>
               <p className="mt-5 text-gray-200 text-lg max-w-xl">
-                Build contests, add questions, monitor submissions and insights — 
+                Build contests, add questions, monitor submissions and insights —{" "}
+                <br className="hidden sm:block" />
                 everything your college needs to run coding at scale.
               </p>
               <div className="mt-8 flex items-center gap-4 flex-wrap">
-              
                 <a
                   href="#features"
                   className="text-emerald-300 text-2xl px-1.5 font-semibold hover:text-white"
@@ -167,7 +205,10 @@ export default function AdminLanding() {
                 Structured paths for admins: set up your college, onboard teachers,
                 create contests, and track analytics — step by step.
               </p>
-              <a className="mt-6 inline-block font-semibold text-emerald-600 hover:underline">
+              <a
+                href="#"
+                className="mt-6 inline-block font-semibold text-emerald-600 hover:underline"
+              >
                 Admin Guide →
               </a>
             </div>
@@ -175,7 +216,9 @@ export default function AdminLanding() {
               {["bg-emerald-50", "bg-cyan-50", "bg-amber-50"].map((color, idx) => (
                 <div
                   key={color}
-                  className={`h-48 w-28 sm:w-36 rounded-2xl shadow ${color} ${idx === 1 ? "-mt-6" : idx === 2 ? "-mt-12" : ""}`}
+                  className={`h-48 w-28 sm:w-36 rounded-2xl shadow ${color} ${
+                    idx === 1 ? "-mt-6" : idx === 2 ? "-mt-12" : ""
+                  }`}
                 />
               ))}
             </div>
@@ -193,9 +236,18 @@ export default function AdminLanding() {
           className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 grid gap-8 sm:grid-cols-2 md:grid-cols-3"
         >
           {[
-            ["Contest Management", "Create, schedule, proctor, and analyze contests effortlessly."],
-            ["Question Bank", "Curate problems, test cases, tags, and difficulty levels."],
-            ["Insights & Reports", "Track performance, plagiarism flags, and growth metrics."]
+            [
+              "Contest Management",
+              "Create, schedule, proctor, and analyze contests effortlessly.",
+            ],
+            [
+              "Question Bank",
+              "Curate problems, test cases, tags, and difficulty levels.",
+            ],
+            [
+              "Insights & Reports",
+              "Track performance, plagiarism flags, and growth metrics.",
+            ],
           ].map(([t, d]) => (
             <div
               key={t}

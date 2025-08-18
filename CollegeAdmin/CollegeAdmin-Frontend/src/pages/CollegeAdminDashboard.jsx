@@ -10,6 +10,12 @@ import {
   FaUsersCog,
 } from "react-icons/fa";
 
+import CollegeAdminDashboardSkeleton from "../components/skeleton/CollegeAdminDashboardSkeleton";
+
+
+
+
+
 export default function CollegeAdminDashboard() {
   const [stats, setStats] = useState({ contests: 0, students: 0 });
   const [loading, setLoading] = useState(true);
@@ -98,15 +104,7 @@ export default function CollegeAdminDashboard() {
 
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 gap-6">
-          <ActionCard
-            title="Manage Contest"
-            description="Manage coding contest for your college."
-            icon={<FaPlusCircle />}
-            buttonLabel="Manage Contest"
-            onClick={() => navigate("/manage-contest")}
-          />
-                
-          <ActionCard
+            <ActionCard
             title="Manage Batches"
             description="Create and manage batches for your college (e.g., CSE 2025, MCA 2026)."
             icon={<FaUsersCog />}
@@ -114,8 +112,17 @@ export default function CollegeAdminDashboard() {
             onClick={() => navigate("/manage-batches")}
           />
      
+                  <ActionCard
+              title="Student Progress"
+              description="Monitor performance, submissions, and leaderboard."
+              icon={<FaUsers />}
+              buttonLabel="View Progress"
+              onClick={() => navigate("/student-progress")}
+            />
 
-        </div>
+                    
+
+                    </div>
 
         {/* Future Section: Recent Activity */}
         <section className="bg-white p-6 rounded-2xl shadow-sm border">
@@ -127,6 +134,7 @@ export default function CollegeAdminDashboard() {
           </ul>
         </section>
       </main>
+           { loading && <CollegeAdminDashboardSkeleton />}
     </div>
   );
 }
@@ -168,6 +176,7 @@ function ActionCard({ title, description, icon, buttonLabel, onClick }) {
       >
         {buttonLabel}
       </button>
+
     </div>
   );
 }

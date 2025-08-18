@@ -6,6 +6,7 @@ import EditContest from "../components/EditContest";
 import ConfirmModal from "../components/DeleteContest"
 import EditQuestionModal from "../components/EditQuestion";
 import AddQuestionModal from "../components/AddQuestionModal";
+import ContestOverviewSkeleton from "../components/skeleton/ContestOverviewSkeleton";
 
 // Confirmation Modal Component
 
@@ -153,10 +154,7 @@ const handleAddQuestion = () => setShowAddQuestion(true);
   };
 
   
-
-  if (loading || !contest)
-    return <div className="p-8 text-center">Loading...</div>;
-
+if (loading || !contest) return <ContestOverviewSkeleton />;
   return (
     <div className="max-w-6xl mx-auto py-8 px-4">
       <div className="flex items-center mb-8">
@@ -269,7 +267,7 @@ const handleAddQuestion = () => setShowAddQuestion(true);
           onContestUpdated={fetchContestInfo} // refresh after updating
         />
       )}
-      // where rendering modals:
+      
       {showAddQuestion && (
         <AddQuestionModal
           contestId={id}

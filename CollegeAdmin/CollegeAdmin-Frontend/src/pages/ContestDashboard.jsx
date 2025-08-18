@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FaArrowLeft, FaPlus } from "react-icons/fa";
 import CreateContest from "../components/CreateContest";
+import ContestDashboardSkeleton from "../components/skeleton/ContestDashboardSkeleton";
 
 export default function CollegeAdminContestDashboard() {
   const { batchId } = useParams();
@@ -45,8 +46,8 @@ export default function CollegeAdminContestDashboard() {
   const handleCreate = () => setCreateToggle(true);
 
   if (loading) {
-    return <div className="p-6 text-center text-gray-600">Loading contests...</div>;
-  }
+  return <ContestDashboardSkeleton />;
+}
 
   return (
     <div className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen">
@@ -61,7 +62,7 @@ export default function CollegeAdminContestDashboard() {
       </div>
 
       {/* Heading */}
-      <h1 className="text-3xl font-bold mb-10 text-gray-800">Manage Contests (Batch: {batchId})</h1>
+      <h1 className="text-3xl font-bold mb-10 text-gray-800">Manage Contests</h1>
 
       {error && <p className="text-red-600 mb-4">{error}</p>}
 

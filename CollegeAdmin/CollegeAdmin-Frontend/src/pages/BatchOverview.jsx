@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import EditBatchModal from "../components/EditBatch";
 import ConfirmModal from "../components/DeleteContest";
+import BatchOverviewSkeleton from "../components/skeleton/BatchOverviewSkeleton";
 
 export default function BatchOverview() {
   const { id } = useParams();
@@ -75,13 +76,9 @@ export default function BatchOverview() {
     toast.success("Batch code copied to clipboard!");
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-48 text-gray-500">
-        Loading batch details...
-      </div>
-    );
-  }
+if (loading) {
+  return <BatchOverviewSkeleton />;
+}
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">

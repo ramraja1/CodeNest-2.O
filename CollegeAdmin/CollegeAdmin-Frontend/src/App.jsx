@@ -13,6 +13,7 @@ import CreateContest from "./components/CreateContest";
 import ContestDetailWithQuestions from "./pages/ContestDetailWithQuestions";
 import CollegeAdminBatchesDashboard from "./pages/BatchesCollege";
 import BatchOverview from "./pages/BatchOverview";
+import StudentProgressDashboard from "./pages/StudentProgressDashboard";
 /* ----------------------
    PRIVATE ROUTE
 ---------------------- */
@@ -47,6 +48,23 @@ function PrivateRoute({ children, role }) {
     return <Navigate to="/college-login" replace />;
   }
 }
+
+const NotFoundPage = () => (
+  <main
+    tabIndex="-1"
+    className="flex flex-col items-center justify-center h-screen text-gray-600"
+  >
+    <h1 className="text-4xl font-bold mb-4">404 - Page Not Found</h1>
+    <p className="mb-6">Sorry, the page you're looking for does not exist.</p>
+    <a
+      href="/"
+      className="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-400 rounded"
+    >
+      Go to Home
+    </a>
+  </main>
+);
+
 
 /* ----------------------
    PUBLIC ROUTE
@@ -148,6 +166,24 @@ function AppContent() {
           }
         />
 
+        <Route
+            path="/manage-batches"
+            element={
+              <PrivateRoute role="collegeadmin">
+                <CollegeAdminBatchesDashboard />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/student-progress"
+            element={
+              <PrivateRoute role="collegeadmin">
+                <StudentProgressDashboard />
+              </PrivateRoute>
+            }
+          />
+
             {/*contest  routes*/}
             <Route
              path="/manage-batches/:batchId/manage-contest"
@@ -157,14 +193,7 @@ function AppContent() {
               </PrivateRoute>
             }
           />
-            <Route
-            path="/manage-batches"
-            element={
-              <PrivateRoute role="collegeadmin">
-                <CollegeAdminBatchesDashboard />
-              </PrivateRoute>
-            }
-          />
+            
 
            <Route
           path="/manage-batches/:id"
@@ -186,11 +215,12 @@ function AppContent() {
 
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </>
   );
 }
+ 
 
 export default function App() {
   return (
