@@ -1,5 +1,4 @@
 import {
-  BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
@@ -48,7 +47,7 @@ function PublicRoute({ children }) {
 
 function App() {
   return (
-    <Router>
+    <>
       <ToastContainer position="top-right" autoClose={3000} />
       <Routes>
         <Route
@@ -75,26 +74,21 @@ function App() {
             </PrivateRoute>
           }
         />
-   
-<Route path="/student/batch/:batchId" element={<BatchPage />}>
-  <Route index element={<Navigate to="contests" replace />} />   {/* 👈 Default tab */}
-  <Route path="overview" element={<BatchOverview />} />
-  <Route path="contests" element={<BatchContests />} />
-  <Route path="resources" element={<BatchResources />} />
-  <Route path="members" element={<BatchMembers />} />
-</Route>
-
-<Route
-  path="/student/batch/:batchId/contest/:contestId"
-  element={<ContestPage />}
-/>
-
-
-
+        <Route path="/student/batch/:batchId" element={<BatchPage />}>
+          <Route index element={<Navigate to="contests" replace />} /> {/* Default tab */}
+          <Route path="overview" element={<BatchOverview />} />
+          <Route path="contests" element={<BatchContests />} />
+          <Route path="resources" element={<BatchResources />} />
+          <Route path="members" element={<BatchMembers />} />
+        </Route>
+        <Route
+          path="/student/batch/:batchId/contest/:contestId"
+          element={<ContestPage />}
+        />
         {/* Redirect all unknown routes to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </Router>
+    </>
   );
 }
 

@@ -4,7 +4,12 @@ import React from "react";
 export default function ProblemPanel({ problem, darkMode }) {
   return (
     <section className="w-2/5 min-w-[340px] max-w-[500px] p-6 overflow-y-auto border-r prose max-w-none dark:prose-invert">
-      <h2>{problem.title}</h2>
+      <h2 className="flex items-center justify-between w-full text-lg font-bold mb-2">
+        <span>{problem.title}</span>
+        <span className="ml-4 px-3 py-1 rounded bg-emerald-500 text-white text-sm font-semibold shadow-sm">
+          Marks: {problem.marks}
+        </span>
+      </h2>
       <p className="mb-2 text-sm opacity-70">
         Difficulty:{" "}
         <span

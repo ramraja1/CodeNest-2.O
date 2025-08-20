@@ -7,23 +7,9 @@ import {
   PlayIcon,
   RocketLaunchIcon,
 } from "@heroicons/react/24/solid";
+import Popup from "./PopupPaste";
 
 // Popup Modal Component
-function Popup({ message, onClose }) {
-  return (
-    <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black bg-opacity-50">
-      <div className="bg-gray-900 text-white px-8 py-6 rounded-lg shadow-xl max-w-sm text-center">
-        <p className="text-lg font-semibold mb-4">{message}</p>
-        <button
-          onClick={onClose}
-          className="mt-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 rounded text-white font-medium"
-        >
-          Okay 👍
-        </button>
-      </div>
-    </div>
-  );
-}
 
 export default function CodeEditor({
   language = "cpp",

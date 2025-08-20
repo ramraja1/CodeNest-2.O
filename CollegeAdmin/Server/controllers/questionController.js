@@ -30,7 +30,7 @@ export const getQuestionById = async (req, res) => {
 // Create a new question
 export const createQuestion = async (req, res) => {
   try {
-    const { contestId, title, description, inputFormat, outputFormat, constraints, sampleInput, sampleOutput, explanation, difficulty, tags, testCases } = req.body;
+    const { contestId, title, description, inputFormat, outputFormat, constraints, sampleInput,marks ,sampleOutput, explanation, difficulty, tags, testCases } = req.body;
 
     if (!contestId || !title) {
       return res.status(400).json({ message: "contestId and title are required" });
@@ -48,14 +48,16 @@ export const createQuestion = async (req, res) => {
       sampleOutput,
       explanation,
       difficulty,
+      marks,
       tags,
       testCases,
     });
 
     // Add question ID to contest.questions
     await Contest.findByIdAndUpdate(contestId, { $push: { questions: question._id } });
-
+    
     res.status(201).json({ message: "Question added", question });
+    
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });

@@ -1,30 +1,35 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import ProblemSolveView from "../ProblemSolveView";
+import { useContext } from "react";
+import { UserContext } from "../../context/UserContext";
 
 export default function ContestPage() {
   const { batchId, contestId } = useParams();
   const navigate = useNavigate();
   const server = import.meta.env.VITE_SERVER;
-  const token = localStorage.getItem("token");
+  const { token, userId } = useContext(UserContext);
 
-  // Read and set current problem ID from URL query parameter
   const [searchParams, setSearchParams] = useSearchParams();
   const initialProblemIdFromUrl = searchParams.get("problemId");
   const [currentProblemId, setCurrentProblemId] = useState(initialProblemIdFromUrl);
 
-  // Contest info and questions state
-  const [contestInfo, setContestInfo] = useState(null); // title, desc, time, prizes, etc
+  const [contestInfo, setContestInfo] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [loadingContest, setLoadingContest] = useState(true);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [error, setError] = useState(null);
 
-  // Timer state
-  const [timeLeft, setTimeLeft] = useState("00:00:00");
-  const timerRef = useRef();
+  // New states for user submissions and leaderboard
+  const [userSubmissions, setUserSubmissions] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [loadingUserSubs, setLoadingUserSubs] = useState(true);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
 
-  // Fetch Contest Info
+  const timerRef = useRef();
+  const [timeLeft, setTimeLeft] = useState("00:00:00");
+
+  // Fetch contest info
   useEffect(() => {
     async function fetchContest() {
       try {
@@ -44,10 +49,9 @@ export default function ContestPage() {
     fetchContest();
   }, [batchId, contestId, server, token]);
 
-  // Fetch questions after contest info is fetched
+  // Fetch questions once contest info ready
   useEffect(() => {
     if (!contestInfo) return;
-
     async function fetchQuestions() {
       try {
         setLoadingQuestions(true);
@@ -66,10 +70,52 @@ export default function ContestPage() {
     fetchQuestions();
   }, [contestId, contestInfo, server, token]);
 
-  // Timer logic: update every second
+  // Fetch user submissions for this contest
+  useEffect(() => {
+    if (!userId || !contestId) return;
+    async function fetchUserSubs() {
+      try {
+        setLoadingUserSubs(true);
+        const res = await fetch(`${server}/api/submissions?userId=${userId}&contestId=${contestId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("Failed to fetch user submissions");
+        const data = await res.json();
+        console.log(data);
+        setUserSubmissions(data.submissions || []);
+      } catch (err) {
+        console.error("Error fetching user submissions:", err);
+      } finally {
+        setLoadingUserSubs(false);
+      }
+    }
+    fetchUserSubs();
+  }, [userId, contestId, token, server]);
+
+  // Fetch top 3 leaderboard users for contest
+  useEffect(() => {
+    if (!contestId) return;
+    async function fetchLeaderboard() {
+      try {
+        setLoadingLeaderboard(true);
+        const res = await fetch(`${server}/api/contests/${contestId}/leaderboard?top=3`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("Failed to fetch leaderboard");
+        const data = await res.json();
+        setLeaderboard(data.leaderboard || []);
+      } catch (err) {
+        console.error("Error fetching leaderboard:", err);
+      } finally {
+        setLoadingLeaderboard(false);
+      }
+    }
+    fetchLeaderboard();
+  }, [contestId, token, server]);
+
+  // Timer countdown
   useEffect(() => {
     if (!contestInfo) return;
-
     function updateTimer() {
       const now = new Date();
       const end = new Date(contestInfo.endTime);
@@ -84,29 +130,33 @@ export default function ContestPage() {
         setTimeLeft(`${h}:${m}:${s}`);
       }
     }
-
     updateTimer();
     timerRef.current = setInterval(updateTimer, 1000);
-
     return () => clearInterval(timerRef.current);
   }, [contestInfo]);
 
-  // Sync state currentProblemId with URL param if it changes externally
+  // Sync currentProblemId with URL param changes
   useEffect(() => {
     if (initialProblemIdFromUrl !== currentProblemId) {
       setCurrentProblemId(initialProblemIdFromUrl);
     }
   }, [initialProblemIdFromUrl]);
 
-  // Loading and error states
+  // Helper function to get user’s submission status for a problem
+  function getProblemStatus(problemId) {
+    const sub = userSubmissions.find((s) => s.problemId === problemId);
+    if (!sub) return "notAttempted";
+    return sub.score > 0 ? "solved" : "attempted";
+  }
+
+  // Calculate total user contest score
+  const totalContestScore = userSubmissions.reduce((sum, s) => sum + (s.score || 0), 0);
+
   if (loadingContest)
     return <div className="flex items-center justify-center h-full p-10">Loading contest details...</div>;
   if (error)
-    return (
-      <div className="text-red-600 font-semibold flex items-center justify-center h-full p-10">{error}</div>
-    );
+    return <div className="text-red-600 font-semibold flex items-center justify-center h-full p-10">{error}</div>;
 
-  // If a problem is selected, render only ProblemSolveView to avoid UI conflicts
   if (currentProblemId) {
     return (
       <ProblemSolveView
@@ -116,11 +166,12 @@ export default function ContestPage() {
           setCurrentProblemId(null);
           setSearchParams({});
         }}
+        userId={userId}
+        token={token}
       />
     );
   }
 
-  // Render contest overview page
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-[#eef2ff] via-[#f0fdfa] to-[#fff] p-0 m-0">
       {/* Header */}
@@ -139,7 +190,6 @@ export default function ContestPage() {
             {timeLeft !== "00:00:00" ? "Live Now" : "Contest Ended"}
           </span>
         </div>
-        {/* Contest Timer */}
         <div className="bg-white/90 px-6 py-2 rounded-2xl font-mono text-lg text-emerald-600 shadow border border-emerald-200 animate-pulse">
           ⏳ {timeLeft} left
         </div>
@@ -159,41 +209,55 @@ export default function ContestPage() {
       </div>
 
       {/* Problems List Grid */}
-      <div className="max-w-3xl mx-auto py-10">
+      <div className="max-w-3xl mx-auto py-10 grid sm:grid-cols-2 md:grid-cols-3 gap-6">
         {loadingQuestions ? (
-          <div className="text-center text-gray-500">Loading questions...</div>
+          <div className="text-center text-gray-500 col-span-full">Loading questions...</div>
         ) : questions.length === 0 ? (
           <div className="text-center col-span-full text-gray-500">No questions found for this contest.</div>
         ) : (
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {questions.map((q, i) => (
+          questions.map((q, i) => {
+            const status = getProblemStatus(q._id);
+            const baseClasses =
+              "transition-transform hover:scale-105 duration-150 rounded-xl p-5 flex flex-col items-start cursor-pointer shadow-lg";
+            const colorClasses =
+              status === "solved"
+                ? "bg-emerald-100 border-emerald-500 text-emerald-900 border-l-8"
+                : status === "attempted"
+                ? "bg-yellow-100 border-yellow-400 text-yellow-800 border-l-8"
+                : "bg-white border-gray-300 text-gray-700 border-l-4";
+
+            return (
               <div
                 key={q._id}
-                className={`transition-transform hover:scale-105 duration-150 bg-white/80 shadow-lg rounded-xl p-5 flex flex-col items-start border-l-4 ${
-                  q.status === "correct"
-                    ? "border-emerald-500"
-                    : q.status === "attempted"
-                    ? "border-yellow-400"
-                    : "border-gray-300"
-                }`}
+                className={`${baseClasses} ${colorClasses}`}
+                onClick={() => {
+                  setCurrentProblemId(q._id);
+                  setSearchParams({ problemId: q._id });
+                }}
               >
-                <span className="text-sm text-gray-500 mb-1">Q{i + 1}</span>
-                <div className="text-lg font-bold text-emerald-900 mb-2">{q.title}</div>
+                <span className="text-sm mb-1 opacity-75">Q{i + 1}</span>
+                <div className="text-lg font-bold mb-2">{q.title}</div>
                 <div
                   className={`text-xs font-semibold px-2 py-1 rounded ${
-                    q.status === "correct"
-                      ? "bg-emerald-100 text-emerald-700"
-                      : q.status === "attempted"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : "bg-gray-100 text-gray-500"
+                    status === "solved"
+                      ? "bg-emerald-300 text-emerald-900"
+                      : status === "attempted"
+                      ? "bg-yellow-300 text-yellow-900"
+                      : "bg-gray-200 text-gray-500"
                   }`}
                 >
-                  {q.status?.charAt(0).toUpperCase() + q.status?.slice(1) || "Unknown"}
+                  {status === "solved"
+                    ? "Solved"
+                    : status === "attempted"
+                    ? "Attempted"
+                    : "Unattempted"}
                 </div>
+
                 <button
                   type="button"
                   className="mt-4 ml-auto bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-full drop-shadow"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setCurrentProblemId(q._id);
                     setSearchParams({ problemId: q._id });
                   }}
@@ -201,21 +265,46 @@ export default function ContestPage() {
                   Start Coding 🚀
                 </button>
               </div>
-            ))}
-          </div>
+            );
+          })
         )}
       </div>
 
       {/* Leaderboard Preview */}
       <div className="max-w-3xl mx-auto mt-10 py-5 px-6 bg-white/70 rounded-xl shadow border border-emerald-100">
-        <div className="flex flex-col sm:flex-row items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-4">
           <div>
             <span className="font-semibold text-emerald-900">Leaderboard Preview</span>
             <span className="ml-2 text-gray-400 text-xs">(Top 3)</span>
           </div>
-          <button className="text-emerald-700 hover:underline text-sm">View Full Leaderboard →</button>
+          <button
+            className="text-emerald-700 hover:underline text-sm"
+            onClick={() => navigate(`/student/batch/${batchId}/contests/${contestId}/leaderboard`)}
+          >
+            View Full Leaderboard →
+          </button>
         </div>
-        {/* TODO: Insert top 3 students here */}
+        {loadingLeaderboard ? (
+          <div className="text-center text-gray-500">Loading leaderboard...</div>
+        ) : leaderboard.length === 0 ? (
+          <div className="text-center text-gray-500">No leaderboard data available.</div>
+        ) : (
+          <ol className="space-y-3">
+            {leaderboard.map((entry, idx) => (
+              <li
+                key={entry._id}
+                className={`flex justify-between items-center px-4 py-2 rounded ${
+                  entry._id === userId ? "bg-emerald-100 font-semibold" : "bg-white"
+                } shadow-sm`}
+              >
+                <span>
+                  #{idx + 1} {entry.username || "User"}
+                </span>
+                <span className="font-semibold text-emerald-700">{entry.totalScore}</span>
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
     </div>
   );

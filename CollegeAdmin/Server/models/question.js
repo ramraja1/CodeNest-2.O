@@ -17,6 +17,7 @@ const questionSchema = new mongoose.Schema(
     sampleOutput: { type: String, default: "" },
     explanation: { type: String, default: "" },
 
+    marks: { type: Number, default: 20 }, // Total marks/points for the question
     // Metadata
     difficulty: { type: String, enum: ["Easy", "Medium", "Hard"], default: "Easy" },
     tags: [{ type: String }],

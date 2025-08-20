@@ -1,4 +1,3 @@
-// ProblemSolveView.jsx
 import React, { useState, useEffect } from "react";
 import {
   SunIcon,
@@ -9,21 +8,34 @@ import {
 } from "@heroicons/react/24/solid";
 import EnhancedEditorOutputPanel from "../components/EditorPannel";
 import ProblemPanel from "./ProblemPanel";
+import SubmitStatus from "../components/SubmissionStatusCards";
+
+
+import { useContext } from "react";
+import { UserContext } from "../context/UserContext.jsx";  // adjust path as needed
+
 
 export default function ProblemSolveView({ questions = [], initialProblemId, onBack }) {
   const [activeProblemId, setActiveProblemId] = useState(
-    initialProblemId || (questions[0] && questions[0]._id)
+    initialProblemId || (questions[0] && questions._id)
   );
+  const [submitStatusOpen, setSubmitStatusOpen] = useState(false);
   const [activeProblem, setActiveProblem] = useState(null);
   const [code, setCode] = useState({});
   const [language, setLanguage] = useState("cpp");
   const [darkMode, setDarkMode] = useState(true);
   const [fullEditor, setFullEditor] = useState(false);
   const [problemListOpen, setProblemListOpen] = useState(false);
-
   const [output, setOutput] = useState("");
   const [error, setError] = useState("");
   const [isRunning, setIsRunning] = useState(false);
+  const [testResults, setTestResults] = useState([]);  // For storing verdicts on submit
+  const [score, setScore] = useState(0);               // Score from submission
+
+
+  //extracting user id from token
+  const {userId,token} = useContext(UserContext);
+  
 
   const server = `${import.meta.env.VITE_SERVER}`;
 
@@ -38,7 +50,6 @@ export default function ProblemSolveView({ questions = [], initialProblemId, onB
     if (!questions.length) return;
     const p = questions.find((q) => q._id === activeProblemId) || questions[0];
     setActiveProblem(p);
-
     if (p) {
       setCode((old) => ({
         ...old,
@@ -79,19 +90,44 @@ export default function ProblemSolveView({ questions = [], initialProblemId, onB
     }
   };
 
+  useEffect(() => {
+  async function fetchLastSubmission() {
+    if (!activeProblem || !userId) return;
+    try {
+      const res = await fetch(
+        `${server}/api/submissions?userId=${userId}&problemId=${activeProblem._id}&contestId=${activeProblem.contestId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data.submission) {
+          setCode((old) => ({
+            ...old,
+            [activeProblem._id]: data.submission.sourceCode,
+          }));
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch last submission:", e);
+    }
+  }
+  fetchLastSubmission();
+}, [activeProblem, userId, token]);
+
   async function handleRun() {
     if (!activeProblem || !activeProblem.testCases || activeProblem.testCases.length === 0) {
       alert("No test cases found for this problem.");
       return;
     }
-
     setIsRunning(true);
     setError("");
     setOutput("");
-
     let verdicts = [];
     const pistionLang = languageMap[language] || language;
-
     for (const test of activeProblem.testCases) {
       try {
         const res = await fetch(`${server}/api/judge`, {
@@ -99,28 +135,28 @@ export default function ProblemSolveView({ questions = [], initialProblemId, onB
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             language: pistionLang,
-            source: code[activeProblem._id],
-            stdin: test.input,
+            version: "latest",
+            sourceCode: code[activeProblem._id] || "",
+            stdin: test.input || "",
           }),
         });
-
         const result = await res.json();
-
-        if (result.stderr) {
-          verdicts.push({
-            input: test.input,
-            expected: test.expectedOutput,
-            output: "",
-            verdict: "Runtime/Error",
-            error: result.stderr,
-          });
-          continue;
+        if (result.run && result.run.stderr) {
+          const errorMsg = result.run.stderr.trim();
+          if (errorMsg) {
+            verdicts.push({
+              input: test.input,
+              expected: test.expectedOutput,
+              output: "",
+              verdict: "Runtime/Error",
+              error: errorMsg,
+            });
+            continue;
+          }
         }
-
-        const outputTrim = result.output ? result.output.trim() : "";
+        const outputTrim = result.run && result.run.stdout ? result.run.stdout.trim() : "";
         const expectedTrim = test.expectedOutput.trim();
         const verdict = outputTrim === expectedTrim ? "Accepted" : "Wrong Answer";
-
         verdicts.push({
           input: test.input,
           expected: test.expectedOutput,
@@ -137,7 +173,6 @@ export default function ProblemSolveView({ questions = [], initialProblemId, onB
         });
       }
     }
-
     const formattedVerdicts = verdicts
       .map(
         (v, i) =>
@@ -150,10 +185,109 @@ export default function ProblemSolveView({ questions = [], initialProblemId, onB
           "\n-------------------------"
       )
       .join("\n\n");
-
     setOutput(formattedVerdicts);
     setIsRunning(false);
   }
+
+ async function handleSubmit() {
+  if (!activeProblem || !activeProblem.testCases || activeProblem.testCases.length === 0) {
+    alert("No test cases found for this problem.");
+    return;
+  }
+  setSubmitStatusOpen(false);  // reset before new submit
+  setIsRunning(true);
+  setError("");
+  setOutput("");
+  let verdicts = [];
+  const pistionLang = languageMap[language] || language;
+  
+  for (const test of activeProblem.testCases) {
+    try {
+      const res = await fetch(`${server}/api/judge`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          language: pistionLang,
+          version: "latest",
+          sourceCode: code[activeProblem._id] || "",
+          stdin: test.input || "",
+        }),
+      });
+      const result = await res.json();
+      if (result.run && result.run.stderr) {
+        const errorMsg = result.run.stderr.trim();
+        if (errorMsg) {
+          verdicts.push({
+            input: test.input,
+            expected: test.expectedOutput,
+            output: "",
+            verdict: "Runtime/Error",
+            error: errorMsg,
+          });
+          continue;
+        }
+      }
+      const outputTrim = result.run && result.run.stdout ? result.run.stdout.trim() : "";
+      const expectedTrim = test.expectedOutput.trim();
+      const verdict = outputTrim === expectedTrim ? "Accepted" : "Wrong Answer";
+      verdicts.push({
+        input: test.input,
+        expected: test.expectedOutput,
+        output: outputTrim,
+        verdict,
+      });
+    } catch (e) {
+      verdicts.push({
+        input: test.input,
+        expected: test.expectedOutput,
+        output: "",
+        verdict: "Error",
+        error: e.message,
+      });
+    }
+  }
+
+  setTestResults(verdicts);
+
+  // Calculate marks earned
+  const passedTests = verdicts.filter((v) => v.verdict === "Accepted").length;
+  const totalMarks = activeProblem?.marks || 0;
+  const marksEarned = Math.round((passedTests / verdicts.length) * totalMarks);
+  setScore(marksEarned);
+
+  // Save the submission persistently
+  try {
+    const res = await fetch(`${server}/api/submissions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,  // pass user auth token if required by your backend
+      },
+      body: JSON.stringify({
+        userId,                  // pass the current user ID
+        problemId: activeProblem._id,
+        contestId: activeProblem.contestId,  // assuming contestId exists on problem
+        language,
+        sourceCode: code[activeProblem._id],
+        testResults: verdicts,
+        score: marksEarned,
+        penalty: 0,             // adjust if you have penalty logic
+        runtime: "N/A",         // optionally parse from judge result if available
+        memory: "N/A",          // same for memory usage
+      }),
+    });
+    if (!res.ok) {
+      const errData = await res.json();
+      console.error("Failed to save submission:", errData.message);
+    }
+  } catch (error) {
+    console.error("Error saving submission:", error);
+  }
+
+  setIsRunning(false);
+  setSubmitStatusOpen(true);
+}
+
 
   const modeClass = darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900";
 
@@ -179,7 +313,6 @@ export default function ProblemSolveView({ questions = [], initialProblemId, onB
             {activeProblem?.title || "Select a Problem"}
           </h1>
         </div>
-
         <div className="flex items-center gap-4">
           <button
             onClick={() => setDarkMode(!darkMode)}
@@ -191,7 +324,6 @@ export default function ProblemSolveView({ questions = [], initialProblemId, onB
               <MoonIcon className="h-5 w-5 text-gray-800" />
             )}
           </button>
-
           <button
             onClick={() => setProblemListOpen(true)}
             className="p-2 rounded hover:bg-gray-700 transition"
@@ -200,7 +332,6 @@ export default function ProblemSolveView({ questions = [], initialProblemId, onB
           </button>
         </div>
       </header>
-
       {/* Problem List Sidebar */}
       {problemListOpen && (
         <aside className="fixed inset-0 bg-opacity-50 z-50 flex">
@@ -228,6 +359,7 @@ export default function ProblemSolveView({ questions = [], initialProblemId, onB
                     setFullEditor(false);
                     setOutput("");
                     setError("");
+                    setSubmitStatusOpen(false);
                   }}
                   className={`cursor-pointer px-4 py-3 border-b border-gray-700 hover:bg-emerald-600 hover:text-white transition ${
                     q._id === activeProblemId ? "bg-emerald-600 text-white font-semibold" : ""
@@ -257,14 +389,12 @@ export default function ProblemSolveView({ questions = [], initialProblemId, onB
           <div className="flex-1" onClick={() => setProblemListOpen(false)} />
         </aside>
       )}
-
       {/* Main Content */}
       <main className="flex flex-1 h-full overflow-hidden">
         {/* Problem Panel */}
         {!fullEditor && activeProblem && (
           <ProblemPanel problem={activeProblem} darkMode={darkMode} />
         )}
-
         {/* Editor + Output Side Panel */}
         {activeProblem && (
           <div
@@ -282,12 +412,25 @@ export default function ProblemSolveView({ questions = [], initialProblemId, onB
               isRunning={isRunning}
               handleEditorChange={handleEditorChange}
               handleRun={handleRun}
-              handleSubmit={handleRun}
+              handleSubmit={handleSubmit}
               fullEditor={fullEditor}
               setFullEditor={setFullEditor}
             />
           </div>
         )}
+
+        {/* Submission Status Modal */}
+        <SubmitStatus
+          isOpen={submitStatusOpen}
+          onClose={() => setSubmitStatusOpen(false)}
+          testResults={testResults}
+          
+            score={score} // This should now be marks earned, not just passedTests
+            totalMarks={activeProblem?.marks || 0} // <-- NEW PROP!
+          isRunning={isRunning}
+          language={language}
+          penalty={0} // hardcoded or computed as needed
+        />
       </main>
     </div>
   );

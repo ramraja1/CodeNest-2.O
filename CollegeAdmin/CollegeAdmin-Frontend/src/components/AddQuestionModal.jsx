@@ -16,6 +16,7 @@ export default function AddQuestionModal({ contestId, token, onClose, onQuestion
   const [testCases, setTestCases] = useState([{ input: "", expectedOutput: "", isHidden: false }]);
   const [loading, setLoading] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [marks, setMarks] = useState(20); // default to 10, or whatever you want
 
   const formRef = useRef(null);
   const server = `${import.meta.env.VITE_SERVER}`;
@@ -57,6 +58,7 @@ export default function AddQuestionModal({ contestId, token, onClose, onQuestion
           constraints,
           sampleInput,
           sampleOutput,
+          marks,
           explanation,
           difficulty,
           tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
@@ -188,20 +190,33 @@ export default function AddQuestionModal({ contestId, token, onClose, onQuestion
             </div>
 
             {/* Difficulty + Tags */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-medium mb-1">Difficulty</label>
-                <select className="w-full border px-3 py-2 rounded" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
-                  <option>Easy</option>
-                  <option>Medium</option>
-                  <option>Hard</option>
-                </select>
+            {/* Difficulty + Marks + Tags */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block font-medium mb-1">Difficulty</label>
+                  <select className="w-full border px-3 py-2 rounded" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+                    <option>Easy</option>
+                    <option>Medium</option>
+                    <option>Hard</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Marks</label>
+                  <input
+                    type="number"
+                    min={1}
+                    className="w-full border px-3 py-2 rounded"
+                    value={marks}
+                    onChange={e => setMarks(Number(e.target.value))}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Tags</label>
+                  <input placeholder="Comma separated" className="w-full border px-3 py-2 rounded" value={tags} onChange={(e) => setTags(e.target.value)} />
+                </div>
               </div>
-              <div>
-                <label className="block font-medium mb-1">Tags</label>
-                <input placeholder="Comma separated" className="w-full border px-3 py-2 rounded" value={tags} onChange={(e) => setTags(e.target.value)} />
-              </div>
-            </div>
+
           </div>
 
           {/* RIGHT COLUMN: Test Cases */}

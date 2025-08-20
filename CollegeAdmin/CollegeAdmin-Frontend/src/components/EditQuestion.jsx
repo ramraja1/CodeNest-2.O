@@ -16,7 +16,7 @@ export default function EditQuestionModal({ questionId, token, onClose, onQuesti
   const [testCases, setTestCases] = useState([{ input: "", expectedOutput: "", isHidden: false }]);
   const [loading, setLoading] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-
+const [marks, setMarks] = useState(20); // default to 10, or whatever you want
   const formRef = useRef(null);
   //server 
    const server=`${import.meta.env.VITE_SERVER}`;
@@ -48,6 +48,7 @@ export default function EditQuestionModal({ questionId, token, onClose, onQuesti
           setExplanation(data.explanation || "");
           setDifficulty(data.difficulty || "Easy");
           setTags((data.tags || []).join(", "));
+          setMarks(data.marks || "");
           setTestCases(data.testCases?.length ? data.testCases : [{ input: "", expectedOutput: "", isHidden: false }]);
         } else {
           toast.error(data.message || "Failed to fetch question");
@@ -209,20 +210,32 @@ export default function EditQuestionModal({ questionId, token, onClose, onQuesti
               <textarea className="w-full border px-3 py-2 rounded" rows="2" value={explanation} onChange={(e) => setExplanation(e.target.value)} />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-medium mb-1">Difficulty</label>
-                <select className="w-full border px-3 py-2 rounded" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
-                  <option>Easy</option>
-                  <option>Medium</option>
-                  <option>Hard</option>
-                </select>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block font-medium mb-1">Difficulty</label>
+                  <select className="w-full border px-3 py-2 rounded" value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
+                    <option>Easy</option>
+                    <option>Medium</option>
+                    <option>Hard</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Marks</label>
+                  <input
+                    type="number"
+                    min={1}
+                    className="w-full border px-3 py-2 rounded"
+                    value={marks}
+                    onChange={e => setMarks(Number(e.target.value))}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-medium mb-1">Tags</label>
+                  <input placeholder="Comma separated" className="w-full border px-3 py-2 rounded" value={tags} onChange={(e) => setTags(e.target.value)} />
+                </div>
               </div>
-              <div>
-                <label className="block font-medium mb-1">Tags</label>
-                <input placeholder="Comma separated" className="w-full border px-3 py-2 rounded" value={tags} onChange={(e) => setTags(e.target.value)} />
-              </div>
-            </div>
+            
           </div>
 
           {/* Right Column - Test Cases */}

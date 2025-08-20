@@ -1,37 +1,43 @@
-import express from 'express';
-import fetch from 'node-fetch';
-import dotenv from 'dotenv';
-
+import express from "express";
+import fetch from "node-fetch";
+import dotenv from "dotenv";
+import { LANGUAGE_VERSIONS } from "../constants/constant.js";
 dotenv.config();
 
 const router = express.Router();
 
-router.post('/', async (req, res) => {
-  const { sourceCode, languageId, stdin, expectedOutput } = req.body;
+router.post("/", async (req, res) => {
+  const { sourceCode, language, version, stdin } = req.body;
 
-  const API_URL = 'https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&wait=true';
-  const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY;
+  
+
+  const PISTON_API_URL = "https://emkc.org/api/v2/piston/execute";
 
   try {
-    const judge0Res = await fetch(API_URL, {
-      method: 'POST',
+    const pistonRes = await fetch(PISTON_API_URL, {
+      method: "POST",
       headers: {
-        'content-type': 'application/json',
-        'X-RapidAPI-Key': JUDGE0_API_KEY,
-        'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com'
+        "content-type": "application/json",
       },
       body: JSON.stringify({
-        source_code: sourceCode,
-        language_id: languageId,
-        stdin: stdin || "",
-        expected_output: expectedOutput || ""
-      })
+        language,
+        version: LANGUAGE_VERSIONS[language],       // fallback to "latest"
+        files: [
+          {
+            name: "main",                    // generic file name
+            content: sourceCode || "",       // code from request
+          },
+        ],
+        stdin: stdin || "",                   // optional stdin
+      }),
     });
-    const result = await judge0Res.json();
+
+    const result = await pistonRes.json();
+    // console.log("Piston API response:", result);
+
     res.json(result);
   } catch (error) {
-    res.status(500).json({ error: 'Execution failed', details: error.toString() });
+    res.status(500).json({ error: "Execution failed", details: error.toString() });
   }
 });
-
 export default router;

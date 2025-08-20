@@ -8,6 +8,7 @@ import batchRoutes from "./routes/batchRoutes.js";
 import contestRoutes from "./routes/contestRoutes.js";
 import questionRoutes from "./routes/questionRoutes.js"
 import judgeRoutes from "./routes/judgeRoutes.js"
+import submissionRoutes from "./routes/submissionRoutes.js"
 
 dotenv.config();
 connectDB();
@@ -27,7 +28,7 @@ app.use("/api/contests", contestRoutes);
 
 
 app.use("/api/questions", questionRoutes);
-
+app.use("/api/submissions",submissionRoutes)
 
 app.use("/api/judge", judgeRoutes);
 const PORT = process.env.PORT || 8000;

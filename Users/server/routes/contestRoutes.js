@@ -3,7 +3,7 @@ import express from "express";
 import Contest from "../models/contest.js";
 import { authMiddleware } from "../middleware/auth.js";
 import { getContests , getContest } from "../controllers/contestControler.js";
-
+import {getLeaderboard} from  "../controllers/leaderboardControler.js"
 const router = express.Router();
 
 /**
@@ -12,5 +12,6 @@ const router = express.Router();
  */
 router.get("/", authMiddleware, getContests);
 router.get("/:contestId", authMiddleware, getContest);
+router.get("/:contestId/leaderboard", authMiddleware, getLeaderboard);
 
 export default router;
