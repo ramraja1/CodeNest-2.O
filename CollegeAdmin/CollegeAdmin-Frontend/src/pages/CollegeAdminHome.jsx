@@ -2,10 +2,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import WarmupScreen from "./WarmupScreen";
 
 export default function AdminLanding() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+
+  //warming backend
+
 
   const handleLogin = () => {
     setMobileMenuOpen(false); // close mobile menu on navigation

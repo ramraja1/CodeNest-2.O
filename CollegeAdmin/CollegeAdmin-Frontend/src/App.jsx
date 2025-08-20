@@ -14,9 +14,12 @@ import ContestDetailWithQuestions from "./pages/ContestDetailWithQuestions";
 import CollegeAdminBatchesDashboard from "./pages/BatchesCollege";
 import BatchOverview from "./pages/BatchOverview";
 import StudentProgressDashboard from "./pages/StudentProgressDashboard";
+import WarmupScreen from "./pages/WarmupScreen";
+
 /* ----------------------
    PRIVATE ROUTE
 ---------------------- */
+
 function PrivateRoute({ children, role }) {
   const token = localStorage.getItem("token");
 
@@ -65,7 +68,6 @@ const NotFoundPage = () => (
   </main>
 );
 
-
 /* ----------------------
    PUBLIC ROUTE
 ---------------------- */
@@ -93,12 +95,35 @@ function PublicRoute({ children }) {
 }
 
 /* ----------------------
-   MAIN APP
+   MAIN APP CONTENT
 ---------------------- */
 function AppContent() {
   const [isReady, setIsReady] = useState(false);
+  const [showWarmup, setShowWarmup] = useState(true);
   const navigate = useNavigate();
 
+  const server = `${import.meta.env.VITE_SERVER}`;
+
+  // Warm up backend when app loads
+useEffect(() => {
+  fetch(`${server}/`)
+    .then(() => {
+      setShowWarmup(false);   // ✅ only runs when backend responds
+    })
+    .catch(() => console.log("Warm-up failed ❌"));
+}, [server]);
+
+// Hide warmup screen after 10 seconds max
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setShowWarmup(false);     // ✅ fallback if backend is slow
+  }, 10000);
+
+  return () => clearTimeout(timer);
+}, []);
+
+
+  // Check token/session validity on load
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -141,7 +166,7 @@ function AppContent() {
           path="/"
           element={
             <PublicRoute>
-              <CollegeAdminHome />
+              {showWarmup ? <WarmupScreen /> : <CollegeAdminHome />}
             </PublicRoute>
           }
         />
@@ -167,35 +192,34 @@ function AppContent() {
         />
 
         <Route
-            path="/manage-batches"
-            element={
-              <PrivateRoute role="collegeadmin">
-                <CollegeAdminBatchesDashboard />
-              </PrivateRoute>
-            }
-          />
+          path="/manage-batches"
+          element={
+            <PrivateRoute role="collegeadmin">
+              <CollegeAdminBatchesDashboard />
+            </PrivateRoute>
+          }
+        />
 
-          <Route
-            path="/student-progress"
-            element={
-              <PrivateRoute role="collegeadmin">
-                <StudentProgressDashboard />
-              </PrivateRoute>
-            }
-          />
+        <Route
+          path="/student-progress"
+          element={
+            <PrivateRoute role="collegeadmin">
+              <StudentProgressDashboard />
+            </PrivateRoute>
+          }
+        />
 
-            {/*contest  routes*/}
-            <Route
-             path="/manage-batches/:batchId/manage-contest"
-            element={
-              <PrivateRoute role="collegeadmin">
-                <CollegeAdminContestDashboard />
-              </PrivateRoute>
-            }
-          />
-            
+        {/* Contest routes */}
+        <Route
+          path="/manage-batches/:batchId/manage-contest"
+          element={
+            <PrivateRoute role="collegeadmin">
+              <CollegeAdminContestDashboard />
+            </PrivateRoute>
+          }
+        />
 
-           <Route
+        <Route
           path="/manage-batches/:id"
           element={
             <PrivateRoute role="collegeadmin">
@@ -213,14 +237,12 @@ function AppContent() {
           }
         />
 
-
         {/* Fallback */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </>
   );
 }
- 
 
 export default function App() {
   return (
