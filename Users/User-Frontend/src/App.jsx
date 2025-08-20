@@ -1,9 +1,16 @@
 import {
+  BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
-import { jwtDecode } from "jwt-decode"; // fixed import, no braces
+import { useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// Pages
 import UserAuthPage from "./pages/UserLogin";
 import UserLanding from "./pages/UserHome";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -13,9 +20,11 @@ import BatchContests from "./pages/batch/BatchContests";
 import BatchResources from "./pages/batch/BatchResources";
 import BatchMembers from "./pages/batch/BatchMembers";
 import ContestPage from "./pages/batch/ContestPage";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import WarmupScreen from "./pages/WarmupScreen";
 
+/* ----------------------
+   TOKEN HELPERS
+---------------------- */
 function isTokenValid(token) {
   try {
     const decoded = jwtDecode(token);
@@ -25,6 +34,9 @@ function isTokenValid(token) {
   }
 }
 
+/* ----------------------
+   ROUTE GUARDS
+---------------------- */
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("token");
   if (!token || !isTokenValid(token)) {
@@ -35,21 +47,54 @@ function PrivateRoute({ children }) {
 }
 
 function PublicRoute({ children }) {
+  const location = useLocation();
   const token = localStorage.getItem("token");
+
+  // Only redirect if logged in AND trying to access /user-login
   if (token && isTokenValid(token)) {
     return <Navigate to="/student" replace />;
   }
-  if (token && !isTokenValid(token)) {
-    localStorage.removeItem("token");
-  }
+
   return children;
 }
 
+/* ----------------------
+   MAIN APP
+---------------------- */
 function App() {
+  const [showWarmup, setShowWarmup] = useState(true);
+  const server = import.meta.env.VITE_SERVER;
+
+  useEffect(() => {
+    let didRespond = false;
+
+    // Call backend immediately
+    fetch(`${server}/`)
+      .then(() => {
+        didRespond = true;
+        setShowWarmup(false); // hide immediately if backend ready
+      })
+      .catch(() => console.log("Warm-up failed ❌"));
+
+    // Fallback → hide after 10s max
+    const timer = setTimeout(() => {
+      if (!didRespond) {
+        setShowWarmup(false);
+      }
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, [server]);
+
+  if (showWarmup) {
+    return <WarmupScreen />;
+  }
+
   return (
     <>
       <ToastContainer position="top-right" autoClose={3000} />
       <Routes>
+        {/* Public homepage */}
         <Route
           path="/"
           element={
@@ -58,6 +103,8 @@ function App() {
             </PublicRoute>
           }
         />
+
+        {/* Login page */}
         <Route
           path="/user-login"
           element={
@@ -66,6 +113,8 @@ function App() {
             </PublicRoute>
           }
         />
+
+        {/* Student dashboard */}
         <Route
           path="/student/*"
           element={
@@ -74,18 +123,23 @@ function App() {
             </PrivateRoute>
           }
         />
+
+        {/* Batch nested routes */}
         <Route path="/student/batch/:batchId" element={<BatchPage />}>
-          <Route index element={<Navigate to="contests" replace />} /> {/* Default tab */}
+          <Route index element={<Navigate to="contests" replace />} />
           <Route path="overview" element={<BatchOverview />} />
           <Route path="contests" element={<BatchContests />} />
           <Route path="resources" element={<BatchResources />} />
           <Route path="members" element={<BatchMembers />} />
         </Route>
+
+        {/* Contest page */}
         <Route
           path="/student/batch/:batchId/contest/:contestId"
           element={<ContestPage />}
         />
-        {/* Redirect all unknown routes to home */}
+
+        {/* Fallback → home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

@@ -5,7 +5,6 @@ import User from "../models/user.js"; // To fetch user details if necessary
 // Controller to get leaderboard for a contest
 export async function getLeaderboard(req, res) {
   try {
-    console.log("we reached");
     const { contestId } = req.params;
     // Optional query param to limit how many users to return
     const top = parseInt(req.query.top, 10) || 10; // default top 10
@@ -28,7 +27,6 @@ export async function getLeaderboard(req, res) {
       { $limit: top },
     ]);
 
-    console.log(leaderboard);
 
     // Populate usernames for each user in the leaderboard
     const userIds = leaderboardData.map((entry) => entry._id);

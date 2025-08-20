@@ -16,8 +16,7 @@ export function UserProvider({ children }) {
   useEffect(() => {
    
     if (!token) {
-      toast.error("User not logged in");
-      navigate("/user-login");
+     
       return;
     }
 
