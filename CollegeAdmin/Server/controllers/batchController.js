@@ -160,3 +160,28 @@ export const joinBatchByCode = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+
+// Get all students of a specific batch
+
+
+// Get all students assigned to a specific batch by checking if batchId is in their batches array
+export const getBatcheStudent = async (req, res) => {
+  try {
+    const { batchId } = req.params;
+    if (!batchId) {
+      return res.status(400).json({ message: "Batch ID is required" });
+    }
+
+    // Find users with role 'student' and with batchId in their batches array
+    const students = await User.find({ role: 'student', batches: batchId })
+      .select("_id name email status") // select the fields you want
+      .lean();
+
+    res.json(students);
+  } catch (err) {
+    console.error("Get Batch Students Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

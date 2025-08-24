@@ -4,7 +4,8 @@ import {
   getBatches,
   getBatchById,
   updateBatch,
-  deleteBatch
+  deleteBatch,
+  getBatcheStudent
 } from '../controllers/batchController.js';
 import {authMiddleware} from '../middleware/auth.js';
 
@@ -18,5 +19,9 @@ router.get('/', getBatches);
 router.get('/:id', getBatchById);
 router.put('/:id', updateBatch);
 router.delete('/:id', deleteBatch);
+
+// fetching all students of batch 
+router.get('/:batchId/students', getBatcheStudent);
+
 
 export default router;

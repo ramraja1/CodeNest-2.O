@@ -15,11 +15,10 @@ import CollegeAdminBatchesDashboard from "./pages/BatchesCollege";
 import BatchOverview from "./pages/BatchOverview";
 import StudentProgressDashboard from "./pages/StudentProgressDashboard";
 import WarmupScreen from "./pages/WarmupScreen";
-
+import BatchStudentsDashboard from "./pages/BatchStudentsDashboard";
 /* ----------------------
    PRIVATE ROUTE
 ---------------------- */
-
 function PrivateRoute({ children, role }) {
   const token = localStorage.getItem("token");
 
@@ -98,32 +97,12 @@ function PublicRoute({ children }) {
    MAIN APP CONTENT
 ---------------------- */
 function AppContent() {
+  // All hooks at the top, outside of any conditional
   const [isReady, setIsReady] = useState(false);
   const [showWarmup, setShowWarmup] = useState(true);
   const navigate = useNavigate();
-
   const server = `${import.meta.env.VITE_SERVER}`;
 
-  // Warm up backend when app loads
-useEffect(() => {
-  fetch(`${server}/`)
-    .then(() => {
-      setShowWarmup(false);   // ✅ only runs when backend responds
-    })
-    .catch(() => console.log("Warm-up failed ❌"));
-}, [server]);
-
-// Hide warmup screen after 10 seconds max
-useEffect(() => {
-  const timer = setTimeout(() => {
-    setShowWarmup(false);     // ✅ fallback if backend is slow
-  }, 10000);
-
-  return () => clearTimeout(timer);
-}, []);
-
-
-  // Check token/session validity on load
   useEffect(() => {
     const token = localStorage.getItem("token");
 
@@ -136,17 +115,38 @@ useEffect(() => {
           localStorage.removeItem("token");
           localStorage.removeItem("role");
           toast.error("Session expired. Please log in again.");
-          navigate("/college-login");
+          navigate("/");
         }
       } catch {
         // Invalid token
         localStorage.removeItem("token");
         localStorage.removeItem("role");
-        navigate("/college-login");
+        navigate("/");
       }
     }
     setIsReady(true);
   }, [navigate]);
+
+  useEffect(() => {
+    let didRespond = false;
+
+    // Call backend immediately
+    fetch(`${server}/`)
+      .then(() => {
+        didRespond = true;
+        setShowWarmup(false); // hide immediately if backend ready
+      })
+      .catch(() => console.log("Warm-up failed ❌"));
+
+    // Fallback → hide after 10s max
+    const timer = setTimeout(() => {
+      if (!didRespond) {
+        setShowWarmup(false);
+      }
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, [server]);
 
   if (!isReady) {
     return (
@@ -156,6 +156,11 @@ useEffect(() => {
     );
   }
 
+  if (showWarmup) {
+    return <WarmupScreen />;
+  }
+
+  // Main App routes (unchanged)
   return (
     <>
       <ToastContainer position="top-right" autoClose={3000} theme="light" />
@@ -166,7 +171,7 @@ useEffect(() => {
           path="/"
           element={
             <PublicRoute>
-              {showWarmup ? <WarmupScreen /> : <CollegeAdminHome />}
+              <CollegeAdminHome />
             </PublicRoute>
           }
         />
@@ -215,6 +220,14 @@ useEffect(() => {
           element={
             <PrivateRoute role="collegeadmin">
               <CollegeAdminContestDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/manage-batches/:batchId/manage-students"
+          element={
+            <PrivateRoute role="collegeadmin">
+              <BatchStudentsDashboard />
             </PrivateRoute>
           }
         />

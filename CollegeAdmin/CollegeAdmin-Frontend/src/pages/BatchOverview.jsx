@@ -178,7 +178,7 @@ if (loading) {
         </div>
 
         <div
-          onClick={() => navigate(`/college-admin/batches/${id}/students`)}
+          onClick={() => navigate(`/manage-batches/${id}/manage-students`)}
           className="bg-white p-6 rounded-xl shadow border border-gray-100 hover:shadow-lg transition cursor-pointer flex items-center gap-4"
         >
           <FaUsers className="text-blue-600 text-3xl" />
