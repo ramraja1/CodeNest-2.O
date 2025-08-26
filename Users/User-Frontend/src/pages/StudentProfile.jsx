@@ -118,7 +118,7 @@ export default function MyProfile() {
       toast("No contests to export.");
       return;
     }
-    contestCSVExport(user.contestStats);
+    contestCSVExport(user.contests);
   }
 
   const goBackHome = () => {

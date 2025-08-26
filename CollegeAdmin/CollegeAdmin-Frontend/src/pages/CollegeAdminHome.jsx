@@ -38,7 +38,11 @@ export default function AdminLanding() {
         >
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-emerald-500" />
+            <img
+              src="/CodenestLogo.png"
+              alt="CodeNest Logo"
+              className="h-8 w-8 rounded-xl"
+            />
             <span className="font-bold tracking-wide">CodeNest Admin</span>
           </div>
 

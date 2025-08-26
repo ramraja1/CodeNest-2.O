@@ -3,12 +3,19 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
- function UserLanding() {
+function UserLanding() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const handleLogin=()=>{
-      navigate("/user-login")
-  }
+  const handleLogin = () => {
+    navigate("/user-login");
+  };
+
+  const menuItems = [
+    { name: "Explore", active: true, onClick: () => {navigate("/user-login");} },
+    { name: "Product", active: false, onClick: () => {navigate("/user-login");} },
+    { name: "Docs", active: false, onClick: () => {navigate("/user-login");} },
+    // Removed 'Sign in'
+  ];
 
   return (
     <div className="relative w-full min-h-screen bg-white text-gray-900">
@@ -20,17 +27,43 @@ import { motion } from "framer-motion";
         >
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-xl bg-emerald-500" />
+            <img
+              src="/CodenestLogo.png"
+              alt="CodeNest Logo"
+              className="h-8 w-8 rounded-xl"
+            />
             <span className="font-bold tracking-wide">CodeNest</span>
           </div>
 
           {/* Desktop Menu */}
           <ul className="hidden md:flex items-center gap-8 text-sm text-gray-200">
-            {["Explore", "Product", "Docs", "Sign in"].map((item) => (
-              <li key={item} className="hover:text-white cursor-pointer">{item}</li>
+            <li>
+           <button
+  className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-semibold shadow-sm border border-violet-400 hover:from-violet-600 hover:to-indigo-600 transition-all duration-200"
+  onClick={() => window.open('https://codenest-college.vercel.app/', '_blank')}
+>
+  Admin
+</button>
+
+
+            </li>
+
+            {menuItems.map(({ name, active, onClick }) => (
+              <li
+                key={name}
+                className={`cursor-pointer hover:text-white ${
+                  active ? "text-white font-semibold" : ""
+                }`}
+                onClick={onClick}
+              >
+                {name}
+              </li>
             ))}
             <li>
-              <button className="px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-600 font-semibold" onClick={handleLogin}>
+              <button
+                className="px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-600 font-semibold"
+                onClick={handleLogin}
+              >
                 Create Account
               </button>
             </li>
@@ -59,7 +92,10 @@ import { motion } from "framer-motion";
                 </li>
               ))}
               <li>
-                <button className="px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-600 font-semibold" onClick={handleLogin}>
+                <button
+                  className="px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-600 font-semibold"
+                  onClick={handleLogin}
+                >
                   Create Account
                 </button>
               </li>
@@ -71,10 +107,7 @@ import { motion } from "framer-motion";
       {/* ===== HERO ===== */}
       <section className="relative overflow-hidden">
         {/* Background Shapes */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-gray-900"
-        >
+        <div aria-hidden="true" className="absolute inset-0 bg-gray-900">
           <div className="absolute -left-40 -top-20 h-72 w-96 rotate-6 bg-gray-800/70 rounded-3xl" />
           <div className="absolute left-28 top-10 h-72 w-96 -rotate-3 bg-gray-800/50 rounded-3xl" />
         </div>
@@ -82,7 +115,6 @@ import { motion } from "framer-motion";
         {/* Content */}
         <div className="relative z-10 mx-auto max-w-7xl pt-28 md:pt-32 pb-24 md:pb-40 px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-            
             {/* Diagram */}
             <motion.div
               initial={{ opacity: 0, x: -40, rotate: -3 }}
@@ -103,7 +135,9 @@ import { motion } from "framer-motion";
                     {[1, 2, 3, 4].map((_, idx) => (
                       <div
                         key={idx}
-                        className={`h-3 rounded bg-gray-200 ${idx % 2 ? "w-3/4" : "w-full"}`}
+                        className={`h-3 rounded bg-gray-200 ${
+                          idx % 2 ? "w-3/4" : "w-full"
+                        }`}
                       />
                     ))}
                     <div className="mt-4 h-28 rounded-xl bg-gray-100" />
@@ -121,14 +155,12 @@ import { motion } from "framer-motion";
               className="text-white order-1 md:order-2 z-20"
             >
               <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">
-                A New Way to Manage <br className="hidden sm:block" /> Your Coding Platform
+                Level Up Your Coding. <br className="hidden sm:block" /> Compete and Win!
               </h1>
               <p className="mt-5 text-gray-200 text-lg max-w-xl">
-                Build contests, add questions, monitor submissions and insights — 
-                everything your college needs to run coding at scale.
+                Join contests,  track your progress, and climb the leaderboards—all with CodeNest, your campus’s hub for coding excellence.
               </p>
               <div className="mt-8 flex items-center gap-4 flex-wrap">
-              
                 <a
                   href="#features"
                   className="text-emerald-300 text-2xl px-1.5 font-semibold hover:text-white"
@@ -162,22 +194,28 @@ import { motion } from "framer-motion";
         >
           <div className="grid md:grid-cols-2 gap-10 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-emerald-600">Start Exploring</h2>
+              <h2 className="text-3xl font-bold text-emerald-600">
+                Start Exploring
+              </h2>
               <p className="mt-4 text-gray-600 max-w-xl">
-                Structured paths for Student: Solve Precised SDE, Daily Problem of the day,
-                join contests, and track Progress — step by step.
+                Structured paths for Student: Solve Precised SDE, Daily Problem
+                of the day, join contests, and track Progress — step by step.
               </p>
               <a className="mt-6 inline-block font-semibold text-emerald-600 hover:underline">
                 Student Guide →
               </a>
             </div>
             <div className="flex justify-center md:justify-end gap-4">
-              {["bg-emerald-50", "bg-cyan-50", "bg-amber-50"].map((color, idx) => (
-                <div
-                  key={color}
-                  className={`h-48 w-28 sm:w-36 rounded-2xl shadow ${color} ${idx === 1 ? "-mt-6" : idx === 2 ? "-mt-12" : ""}`}
-                />
-              ))}
+              {["bg-emerald-50", "bg-cyan-50", "bg-amber-50"].map(
+                (color, idx) => (
+                  <div
+                    key={color}
+                    className={`h-48 w-28 sm:w-36 rounded-2xl shadow ${color} ${
+                      idx === 1 ? "-mt-6" : idx === 2 ? "-mt-12" : ""
+                    }`}
+                  />
+                )
+              )}
             </div>
           </div>
         </motion.div>
@@ -193,9 +231,18 @@ import { motion } from "framer-motion";
           className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 grid gap-8 sm:grid-cols-2 md:grid-cols-3"
         >
           {[
-            ["Contest Management", "Create, schedule, proctor, and analyze contests effortlessly."],
-            ["Question Bank", "Curate problems, test cases, tags, and difficulty levels."],
-            ["Insights & Reports", "Track performance, plagiarism flags, and growth metrics."]
+            [
+              "Practice Daily",
+              "Solve  coding problems every day and build real confidence.",
+            ],
+            [
+              "Compete Ranking",
+              "Take part in live contests and see where you stand among your peers.",
+            ],
+            [
+              "Earn Badges",
+              "Track performance, Unlock badges for milestones.",
+            ],
           ].map(([t, d]) => (
             <div
               key={t}
@@ -218,4 +265,4 @@ import { motion } from "framer-motion";
   );
 }
 
-export default UserLanding
+export default UserLanding;

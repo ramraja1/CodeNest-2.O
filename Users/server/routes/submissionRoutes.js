@@ -172,7 +172,6 @@ router.get("/contests", authMiddleware, async (req, res) => {
       { $sort: { rank: 1 } },
     ]);
 
-    console.log("Contest ranks:", contestRanks); // Debug log
 
     res.json(contestRanks);
   } catch (err) {
