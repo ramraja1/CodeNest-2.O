@@ -21,6 +21,7 @@ import BatchResources from "./pages/batch/BatchResources";
 import BatchMembers from "./pages/batch/BatchMembers";
 import ContestPage from "./pages/batch/ContestPage";
 import WarmupScreen from "./pages/WarmupScreen";
+import MyProfile from "./pages/StudentProfile";
 
 /* ----------------------
    TOKEN HELPERS
@@ -120,6 +121,14 @@ function App() {
           element={
             <PrivateRoute>
               <StudentDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/Student-Profile"
+          element={
+            <PrivateRoute>
+              <MyProfile />
             </PrivateRoute>
           }
         />

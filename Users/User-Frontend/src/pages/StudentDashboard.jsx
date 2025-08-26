@@ -287,7 +287,7 @@ export default function StudentDashboard() {
                   <p className="font-semibold">{userName}</p>
                   <p className="text-sm text-gray-500">student@example.com</p>
                 </div>
-                <div className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer">
+                <div className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer" onClick={() => navigate("/Student-Profile")}>
                   <FaUserCircle /> My Profile
                 </div>
                 <div
