@@ -1,16 +1,27 @@
+// middleware/uploadMiddleware.js
 import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "../config/cloudinaryConfig.js";
+import fs from "fs";
 
-const storage = new CloudinaryStorage({
-  
-  cloudinary,
-  params: {
-    folder: "CodeNest-Profile",
-    allowed_formats: ["jpg", "png", "jpeg"],
-  },
-});
+// Multer stores file locally in /uploads before sending to Cloudinary
+const upload = multer({ dest: "uploads/" });
 
-const upload = multer({ storage });
+// Middleware to handle Cloudinary upload
+const uploadToCloudinary = async (req, res, next) => {
+  if (!req.file) return next();
 
-export default upload;
+  try {
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "CodeNest-Profile", // same folder you used earlier
+      allowed_formats: ["jpg", "png", "jpeg"],
+    });
+
+    req.cloudinaryUrl = result.secure_url; // attach Cloudinary URL to request
+    fs.unlinkSync(req.file.path); // delete local temp file
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { upload, uploadToCloudinary };
