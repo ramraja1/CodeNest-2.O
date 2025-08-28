@@ -286,11 +286,11 @@ console.log("RTK Query user data:", user, userError, userLoading);
             >
               <FaBars />
             </button>
-            <h2 className="font-bold text-2xl">Welcome, {user.name}</h2>
+            <h2 className="font-bold text-2xl">Welcome</h2>
           </div>
           <div className="relative">
             <img
-              src={user.avatarUrl}
+              src="./CodenestLogo.png"
               alt="profile"
               className="w-10 h-10 rounded-full cursor-pointer border"
               onClick={() => setProfileOpen(!profileOpen)}
@@ -298,8 +298,8 @@ console.log("RTK Query user data:", user, userError, userLoading);
             {profileOpen && (
               <div className="absolute right-0 mt-2 bg-white text-gray-800 shadow-lg rounded-lg w-56">
                 <div className="px-4 py-2 border-b">
-                  <p className="font-semibold">{user.name}</p>
-                  <p className="text-sm text-gray-500">{user.email}</p>
+                  <p className="font-semibold">Pawan</p>
+                  <p className="text-sm text-gray-500">SFF</p>
                 </div>
                 <div className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer" onClick={() => navigate("/Student-Profile")}>
                   <FaUserCircle /> My Profile
