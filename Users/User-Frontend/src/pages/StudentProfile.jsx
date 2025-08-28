@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   FaEdit,
   FaUser,
@@ -7,10 +7,8 @@ import {
   FaMedal,
   FaChartLine,
   FaAward,
-  FaCrown,
   FaCamera,
   FaBell,
-  FaTrophy,
   FaLock,
   FaArrowLeft,
   FaTable,
@@ -21,32 +19,26 @@ import {
 } from "react-icons/fa";
 import classNames from "classnames";
 import { Tooltip } from "react-tooltip";
-import { toast } from "react-toastify";// Toast notifications import
+import { toast } from "react-toastify";
 
-// ---------------- Utility Functions ----------------
-function formatDate(date) {
-  const d = new Date(date);
-  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
-}
+import { useDispatch, useSelector } from "react-redux";
+import { useGetMeQuery ,useGetMyContestsDetailQuery} from "../store/apiSlice";
+import { setUser, setLoading, setError } from "../store/userSlice";
+  const token = localStorage.getItem("token");
 
-const token = localStorage.getItem("token");
-const server = `${import.meta.env.VITE_SERVER}`;
+const server = import.meta.env.VITE_SERVER;
 
 const contestCSVExport = (contests) => {
   const header = ["Contest", "Rank", "Trophy", "Score"];
-
   const rows = contests.map((c) => [
-    `"${c.title ?? ""}"`, // Quote strings to handle commas
+    `"${c.title ?? ""}"`,
     c.rank ?? "",
     c.trophy ?? "",
     c.totalScore ?? "",
   ]);
-
   const csvContent = [header, ...rows].map((e) => e.join(",")).join("\n");
-
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
-
   const link = document.createElement("a");
   link.href = url;
   link.setAttribute("download", "contests.csv");
@@ -54,67 +46,57 @@ const contestCSVExport = (contests) => {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
-
   toast.success("Contest data exported as CSV ✅");
 };
 
-// ---------------- Main Component ----------------
 export default function MyProfile() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+
+  const { data, error, isLoading } = useGetMeQuery(undefined, {
+    skip: !token,
+  });
+
+  const user = useSelector((state) => state.user.profile);
+  const loading = useSelector((state) => state.user.loading);
+  const loadError = useSelector((state) => state.user.error);
+
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const toggleSidebar = () => setSidebarOpen((s) => !s);
+ useEffect(() => {
+  if (isLoading) {
+    dispatch(setLoading());
+    return;
+  }
 
-  useEffect(() => {
-    async function fetchUserData() {
-      try {
-        setLoading(true);
-        setError(null);
+  if (data) {
+    dispatch(
+      setUser({
+        ...data,
+        streak: data.streak || { current: 0, longest: 0, calendar: [] },
+        potdStats: data.potdStats || { attempted: 0, solved: 0, streak: 0, progress: [] },
+      })
+    );
+  } else if (error) {
+    dispatch(setError(error?.data?.message || "Failed to load profile"));
+  } else {
+    // No data, no error, fetch not loading -> clear loading
+    dispatch(setLoading(false));  // change your setLoading to accept false or add new action to clear loading
+  }
+}, [data, error, isLoading, dispatch]);
 
-        const response = await fetch(`${server}/api/users`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!response.ok) throw new Error("Failed to fetch user data");
-        const data = await response.json();
-        setUser({
-          ...data,
-          streak: data.streak || {
-            current: 0,
-            longest: 0,
-            calendar: [],
-          },
-          potdStats: data.potdStats || {
-            attempted: 0,
-            solved: 0,
-            streak: 0,
-            progress: [],
-          },
-        });
-        toast.success("Profile loaded ✅");
-      } catch (err) {
-        setError(err.message);
-        toast.error("Failed to load profile ❌");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchUserData();
-  }, []);
 
   function onAvatarChange(e) {
     const file = e.target.files?.[0];
     if (file) {
-      setUser((u) => ({ ...u, avatarUrl: URL.createObjectURL(file) }));
+      dispatch(setUser({ ...user, avatarUrl: URL.createObjectURL(file) }));
       toast("Avatar preview updated 👤");
     }
   }
 
   function exportCSV() {
-    if (!user?.contestStats?.length) {
+    if (!user?.contests?.length) {
       toast("No contests to export.");
       return;
     }
@@ -133,11 +115,10 @@ export default function MyProfile() {
       </div>
     );
   }
-
-  if (error) {
+  if (loadError) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-red-600 font-semibold">
-        <p>Error loading profile: {error}</p>
+        <p>Error loading profile: {loadError}</p>
         <button
           onClick={() => window.location.reload()}
           className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
@@ -150,33 +131,33 @@ export default function MyProfile() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row transition-colors duration-500 bg-slate-50 text-slate-900">
-      <Sidebar user={user} sidebarOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+      <Sidebar user={user} sidebarOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen((s) => !s)} />
 
       <div className="flex-1 flex flex-col min-h-screen overflow-auto">
-        <TopNavbar user={user} toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} onBackHome={goBackHome} />
+        <TopNavbar
+          user={user}
+          toggleSidebar={() => setSidebarOpen((s) => !s)}
+          sidebarOpen={sidebarOpen}
+          onBackHome={goBackHome}
+        />
 
         <main className="flex-grow w-full max-w-7xl mx-auto p-4 md:p-10 space-y-10">
           <ProfileHeader user={user} onAvatarChange={onAvatarChange} onEditClick={() => setEditModalOpen(true)} />
-          <AchievementsSection achievements={user.achievements || []} />
+          <AchievementsSection achievements={user?.achievements || []} />
           <ContestPerformance onExportCSV={exportCSV} />
           <SecurityPreferences />
         </main>
       </div>
 
       {editModalOpen && (
-        <EditProfileModal
-          user={user}
-          setUser={setUser}
-          onClose={() => setEditModalOpen(false)}
-          saving={saving}
-          setSaving={setSaving}
-        />
+        <EditProfileModal user={user} setUser={(updatedUser) => dispatch(setUser(updatedUser))} onClose={() => setEditModalOpen(false)} saving={saving} setSaving={setSaving} />
       )}
 
       <Tooltip id="tooltip" />
     </div>
   );
 }
+
 
 // ---------------- Sidebar ----------------
 function Sidebar({ user, sidebarOpen, toggleSidebar }) {
@@ -209,13 +190,13 @@ function Sidebar({ user, sidebarOpen, toggleSidebar }) {
         </button>
         <div className="flex items-center gap-3 mb-12">
           <img
-            src={user.avatarUrl}
-            alt={`${user.name} avatar`}
+            src={user?.avatarUrl}
+            alt={`${user?.name ?? "User"} avatar`}
             className="h-12 w-12 rounded-full border-2 border-emerald-400 object-cover"
           />
           <div>
-            <p className="font-semibold text-lg leading-none">{user.name}</p>
-            <p className="text-xs text-emerald-500">{user.collegeName}</p>
+            <p className="font-semibold text-lg leading-none">{user?.name}</p>
+            <p className="text-xs text-emerald-500">{user?.collegeName}</p>
           </div>
         </div>
         <nav className="space-y-3 font-semibold text-slate-700" aria-label="Sidebar Navigation">
@@ -229,6 +210,7 @@ function Sidebar({ user, sidebarOpen, toggleSidebar }) {
     </>
   );
 }
+
 
 // ---------------- Top Navbar -----------------
 function TopNavbar({ user, toggleSidebar, sidebarOpen, onBackHome }) {
@@ -270,7 +252,7 @@ function TopNavbar({ user, toggleSidebar, sidebarOpen, onBackHome }) {
           aria-expanded={dropdownOpen}
           className="rounded-full border border-gray-300 hover:border-emerald-500 transition p-[2px] focus:outline-none focus:ring-2 focus:ring-emerald-500"
         >
-          <img src={user.avatarUrl} alt={`${user.name} avatar`} className="h-9 w-9 rounded-full object-cover" />
+          <img src={user?.avatarUrl} alt={`${user?.name ?? "User"} avatar`} className="h-9 w-9 rounded-full object-cover" />
         </button>
 
         {dropdownOpen && (
@@ -304,6 +286,7 @@ function TopNavbar({ user, toggleSidebar, sidebarOpen, onBackHome }) {
   );
 }
 
+
 // ---------------- Profile Header -----------------
 function ProfileHeader({ user, onAvatarChange, onEditClick }) {
   const fileInputRef = useRef();
@@ -312,7 +295,7 @@ function ProfileHeader({ user, onAvatarChange, onEditClick }) {
     <section className="bg-white rounded-3xl shadow-xl md:p-12 flex flex-col md:flex-row gap-10 items-center transition">
       <div className="relative group">
         <img
-          src={user.avatarUrl}
+          src={user?.avatarUrl}
           alt="Avatar"
           className="w-40 h-40 rounded-full border-4 border-emerald-400 shadow-md object-cover select-none"
           draggable={false}
@@ -320,16 +303,16 @@ function ProfileHeader({ user, onAvatarChange, onEditClick }) {
         />
       </div>
       <div className="flex-1 space-y-2 select-text">
-        <h2 className="text-3xl font-extrabold tracking-tight break-words">{user.name}</h2>
+        <h2 className="text-3xl font-extrabold tracking-tight break-words">{user?.name}</h2>
         <p className="flex items-center gap-2 text-slate-500">
           <FaAt />
-          {user.email}
+          {user?.email}
         </p>
         <p className="flex items-center gap-2 text-emerald-600">
           <FaUniversity />
-          {user.collegeName}
+          {user?.collegeName}
         </p>
-        <p className="my-4 text-lg max-w-xl whitespace-pre-wrap break-words">{user.bio}</p>
+        <p className="my-4 text-lg max-w-xl whitespace-pre-wrap break-words">{user?.bio}</p>
         <button
           onClick={onEditClick}
           className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 focus:ring-4 focus:ring-blue-500 transition"
@@ -339,12 +322,13 @@ function ProfileHeader({ user, onAvatarChange, onEditClick }) {
         </button>
       </div>
       <div className="flex flex-col gap-5 justify-center min-w-[180px]">
-        <ValueWidget label="Coins" value={user.codingPoints} color="emerald" />
-        <ValueWidget label="Solved" value={user.solvedQuestions.length} color="blue" />
+        <ValueWidget label="Coins" value={user?.codingPoints} color="emerald" />
+        <ValueWidget label="Solved" value={user?.solvedQuestions?.length || 0} color="blue" />
       </div>
     </section>
   );
 }
+
 
 // ---------------- ValueWidget ------------------
 function ValueWidget({ label, value, color = "emerald" }) {
@@ -359,6 +343,7 @@ function ValueWidget({ label, value, color = "emerald" }) {
     </div>
   );
 }
+
 
 // ---------------- NavLink ----------------------
 function NavLink({ icon, label, active }) {
@@ -378,9 +363,10 @@ function NavLink({ icon, label, active }) {
   );
 }
 
-// ---------------- Achievements ---------------------
+
+// ---------------- Achievements Section ---------------------
 function AchievementsSection({ achievements }) {
-  if (achievements.length === 0) {
+  if (!achievements || achievements.length === 0) {
     return (
       <section className="bg-white rounded-3xl shadow-xl p-8 text-center text-slate-400 border-2 border-dashed">
         🚀 Start solving problems to unlock achievements!
@@ -403,6 +389,7 @@ function AchievementsSection({ achievements }) {
   );
 }
 
+
 function TooltipBadge({ icon, name, description }) {
   return (
     <div
@@ -419,34 +406,29 @@ function TooltipBadge({ icon, name, description }) {
   );
 }
 
+
 // ---------------- Contest Performance ---------------------
-function ContestPerformance({ onExportCSV }) {
+
+function ContestPerformance() {
   const [visibleCount, setVisibleCount] = useState(5);
   const [contests, setContests] = useState([]);
 
-  const handleShowMore = () => setVisibleCount((prev) => prev + 5);
+  // Reading token locally; alternatively, manage in Redux or RTK Query headers globally
 
+
+  // Fetch contest details from RTK Query; skip if no token
+  const { data, error, isLoading } = useGetMyContestsDetailQuery();
+
+  // When RTK Query data changes, update local contests state for pagination
   useEffect(() => {
-    async function fetchContests() {
-      try {
-        const res = await fetch(`${server}/api/submissions/contests`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setContests(data);
-          toast.success("Contest data loaded ✅");
-        } else {
-          setContests([]);
-          toast.error("Failed to load contest data ❌");
-        }
-      } catch {
-        setContests([]);
-        toast.error("Error loading contest data ❌");
-      }
+    if (data) {
+      setContests(data); // You can sanitize/transform here if needed
     }
-    fetchContests();
-  }, []);
+  }, [data]);
+
+  // Manage loading and error UI as may be appropriate here or parent component...
+
+  const handleShowMore = () => setVisibleCount((prev) => prev + 5);
 
   return (
     <ProfileCard title="Contest Rankings" icon={<FaTable />}>
@@ -464,12 +446,12 @@ function ContestPerformance({ onExportCSV }) {
             {contests.length === 0 ? (
               <tr>
                 <td colSpan={4} className="text-center text-slate-400 py-4">
-                  No contest records found.
+                  {isLoading ? "Loading contests..." : "No contest records found."}
                 </td>
               </tr>
             ) : (
               contests.slice(0, visibleCount).map((c) => (
-                <tr key={c.contestId}>
+                <tr key={c.contestId || c.id}>
                   <td className="px-6 py-2 text-left">{c.title || "N/A"}</td>
                   <td className="px-6 py-2 text-center">{c.rank ?? "-"}</td>
                   <td className="px-6 py-2 text-center">{c.trophy || ""}</td>
@@ -491,19 +473,14 @@ function ContestPerformance({ onExportCSV }) {
           </div>
         )}
 
-        <div className="flex justify-end mt-4">
-          <button
-            className="px-4 py-1 border border-green-600 rounded text-green-700 hover:bg-green-50"
-            onClick={() => onExportCSV(contests)}
-            disabled={!contests.length}
-          >
-            Download CSV
-          </button>
-        </div>
+       
       </div>
     </ProfileCard>
   );
 }
+
+
+
 
 // ---------------- Security & Preferences ---------------------
 function SecurityPreferences() {
@@ -522,20 +499,21 @@ function SecurityPreferences() {
   );
 }
 
+
 // ---------------- Edit Profile Modal -----------------
 export function EditProfileModal({ user, setUser, onClose, saving, setSaving }) {
-  const [name, setName] = useState(user.name);
-  const [bio, setBio] = useState(user.bio);
-  const [college, setCollege] = useState(user.collegeName);
-  const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl);
+  const [name, setName] = useState(user?.name || "");
+  const [bio, setBio] = useState(user?.bio || "");
+  const [college, setCollege] = useState(user?.collegeName || "");
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl || "");
   const [errors, setErrors] = useState({});
   const [uploading, setUploading] = useState(false);
 
   const fileInputRef = useRef();
 
   useEffect(() => {
-    setAvatarUrl(user.avatarUrl);
-  }, [user.avatarUrl]);
+    setAvatarUrl(user?.avatarUrl || "");
+  }, [user?.avatarUrl]);
 
   function validate() {
     const errs = {};
@@ -760,7 +738,8 @@ export function EditProfileModal({ user, setUser, onClose, saving, setSaving }) 
   );
 }
 
-// ---------------- ProfileCard (container) -----------
+
+// ---------------- ProfileCard (container) -----------------
 function ProfileCard({ icon, title, children }) {
   return (
     <section className="bg-white rounded-2xl shadow-lg p-6 transition-colors duration-300">

@@ -57,3 +57,23 @@ const { batchId } = req.query;
     res.status(500).json({ message: "Server error fetching contests" });
   }
 };
+
+// PATCH/POST /api/contests/:id/end
+export const endContest = async (req, res) => {
+  try {
+  
+    const contest = await Contest.findById(req.params.contestId);
+    if (!contest) return res.status(404).json({ message: "Contest not found" });
+
+    if (contest.status === "completed") {
+      return res.status(400).json({ message: "Contest already ended" });
+    }
+
+    contest.status = "completed";
+    await contest.save();
+
+    res.json({ message: "Contest ended", status: contest.status });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to end contest" });
+  }
+};

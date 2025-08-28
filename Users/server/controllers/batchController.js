@@ -1,6 +1,6 @@
 import Batch from "../models/Batch.js";
 import User from "../models/user.js";
-
+import Contest from '../models/contest.js';  // import your Contest model
 // Student joins batch via code
 export const joinBatchByCode = async (req, res) => {
   try {
@@ -40,16 +40,31 @@ export const joinBatchByCode = async (req, res) => {
 };
 
 // Get all batches joined by logged-in student
+
+
 export const getMyBatches = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate("batches");
-  
-    res.json(user.batches || []);
+    const batches = user.batches || [];
+
+    // For each batch, count contests linked by batchId
+    const batchesWithContestsCount = await Promise.all(
+      batches.map(async (batch) => {
+        const contestsCount = await Contest.countDocuments({ batchId: batch._id });
+        return {
+          ...batch.toObject(),
+          contestsCount,
+        };
+      })
+    );
+
+    res.json(batchesWithContestsCount);
   } catch (err) {
     console.error("Fetch My Batches Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // Get batch details by batch ID
 export const getBatchById = async (req, res) => {

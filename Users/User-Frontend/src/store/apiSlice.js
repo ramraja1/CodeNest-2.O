@@ -8,6 +8,7 @@ export const apiSlice = createApi({
     baseUrl: import.meta.env.VITE_SERVER,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
+      console.log(token);
       if (token) headers.set('Authorization', `Bearer ${token}`);
       return headers;
     }
@@ -19,8 +20,11 @@ export const apiSlice = createApi({
     getMyBatches: builder.query({
       query: () => '/api/batches/my',
     }),
+    getMyContestsDetail: builder.query({
+      query:() => '/api/submissions/contests'
+    }),
     // ...other endpoints
   }),
 });
 
-export const { useGetMeQuery, useGetMyBatchesQuery } = apiSlice;
+export const { useGetMeQuery, useGetMyBatchesQuery,useGetMyContestsDetailQuery } = apiSlice;
