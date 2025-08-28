@@ -15,7 +15,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
-
+import {useGetMeQuery, useGetMyBatchesQuery} from "../store/apiSlice"
 import dotenv from 'dotenv'
 
 
@@ -29,6 +29,13 @@ export default function StudentDashboard() {
   const [userName, setUserName] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+
+
+  //fetching from redux
+  const { data: user, error: userError, isLoading: userLoading } = useGetMeQuery();
+
+console.log("RTK Query user data:", user, userError, userLoading);
+
 
   //join batch
   const [joinBatchToggle,setJoinBatchToggle]=useState(false);
@@ -105,7 +112,14 @@ export default function StudentDashboard() {
         } md:translate-x-0 fixed md:relative z-50 bg-gray-900 text-white w-64 p-4 min-h-screen transition-transform`}
       >
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-xl font-bold">CodeNest</h1>
+           <div className="flex items-center gap-2">
+            <img
+              src="/CodenestLogo.png"
+              alt="CodeNest Logo"
+              className="h-8 w-8 rounded-xl"
+            />
+            <span className="font-bold tracking-wide">CodeNest</span>
+          </div>
           <button className="md:hidden" onClick={() => setSidebarOpen(false)}>✖</button>
         </div>
 
@@ -272,11 +286,11 @@ export default function StudentDashboard() {
             >
               <FaBars />
             </button>
-            <h2 className="font-bold text-2xl">Welcome, {userName}</h2>
+            <h2 className="font-bold text-2xl">Welcome, {user.name}</h2>
           </div>
           <div className="relative">
             <img
-              src="https://i.pravatar.cc/40"
+              src={user.avatarUrl}
               alt="profile"
               className="w-10 h-10 rounded-full cursor-pointer border"
               onClick={() => setProfileOpen(!profileOpen)}
@@ -284,8 +298,8 @@ export default function StudentDashboard() {
             {profileOpen && (
               <div className="absolute right-0 mt-2 bg-white text-gray-800 shadow-lg rounded-lg w-56">
                 <div className="px-4 py-2 border-b">
-                  <p className="font-semibold">{userName}</p>
-                  <p className="text-sm text-gray-500">student@example.com</p>
+                  <p className="font-semibold">{user.name}</p>
+                  <p className="text-sm text-gray-500">{user.email}</p>
                 </div>
                 <div className="px-4 py-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer" onClick={() => navigate("/Student-Profile")}>
                   <FaUserCircle /> My Profile
