@@ -54,6 +54,28 @@ const navigate = useNavigate();
     }
   };
 
+ const handleContestClick = (contest) => {
+  // status from Mongoose schema
+  if (contest.status === "completed") {
+    toast.info("You have already submitted .");
+    return;
+  }
+  // status based on time (guard against old data)
+  const now = new Date();
+  if (new Date(contest.startTime) > now) {
+    toast.info("This contest is upcoming. Please wait for it to start.");
+    return;
+  }
+  if (new Date(contest.endTime) < now) {
+    toast.error("This contest has ended.");
+    return;
+  }
+  // Only go to contest if it's not completed, within allowed time window
+  navigate(`/student/batch/${batchId}/contest/${contest._id}`);
+};
+
+
+
   if (loading) return <p className="text-gray-500">Loading contests...</p>;
   if (!contests.length) return <p className="text-gray-600">No contests found for this batch.</p>;
 
@@ -66,7 +88,7 @@ const navigate = useNavigate();
         return (
           <div
             key={contest._id}
-            onClick={() => navigate(`/student/batch/${batchId}/contest/${contest._id}`)}
+            onClick={() => handleContestClick(contest, status)}
             className={`rounded-lg shadow p-6 transition cursor-pointer border-l-4 ${
               status === "active"
                 ? "bg-green-50 border-green-600 hover:shadow-lg"

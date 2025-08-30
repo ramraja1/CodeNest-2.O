@@ -63,6 +63,7 @@ export const endContest = async (req, res) => {
   try {
   
     const contest = await Contest.findById(req.params.contestId);
+    
     if (!contest) return res.status(404).json({ message: "Contest not found" });
 
     if (contest.status === "completed") {
@@ -71,6 +72,7 @@ export const endContest = async (req, res) => {
 
     contest.status = "completed";
     await contest.save();
+    
 
     res.json({ message: "Contest ended", status: contest.status });
   } catch (err) {

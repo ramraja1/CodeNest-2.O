@@ -1,26 +1,46 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { FaTimes } from "react-icons/fa";
+import { DateTime } from "luxon";
 
-export default function CreateContest({ batchId, handleCreatetoggle, onContestCreated }) {
+export default function CreateContest({ batchId, handleCreatetoggle, onContestCreated, existingContest }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [tags, setTags] = useState("");
   const [loading, setLoading] = useState(false);
-  const token = localStorage.getItem("token");
-  //server 
-   const server=`${import.meta.env.VITE_SERVER}`;
-  // Format datetime-local
-  const formatDateForInput = useCallback((dateStr) => {
-    const date = new Date(dateStr);
-    return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-      .toISOString()
-      .slice(0, 16);
-  }, []);
 
-  // Close on ESC key
+  const token = localStorage.getItem("token");
+  const server = `${import.meta.env.VITE_SERVER}`;
+
+  // Luxon helpers for date conversion
+  const utcToLocalInput = (utcString) => {
+    if (!utcString) return "";
+    return DateTime.fromISO(utcString, { zone: "utc" })
+      .toLocal()
+      .toFormat("yyyy-MM-dd'T'HH:mm");
+  };
+
+  const localInputToUTC = (localDateTime) => {
+    if (!localDateTime) return null;
+    return DateTime.fromFormat(localDateTime, "yyyy-MM-dd'T'HH:mm", { zone: "local" })
+      .toUTC()
+      .toISO();
+  };
+
+  // Initialize form with existing contest data if any
+  useEffect(() => {
+    if (existingContest) {
+      setTitle(existingContest.title || "");
+      setDescription(existingContest.description || "");
+      setStartTime(utcToLocalInput(existingContest.startTime));
+      setEndTime(utcToLocalInput(existingContest.endTime));
+      setTags((existingContest.tags || []).join(", "));
+    }
+  }, [existingContest]);
+
+  // Close modal on ESC key
   useEffect(() => {
     const handleEsc = (e) => e.key === "Escape" && handleCreatetoggle();
     document.addEventListener("keydown", handleEsc);
@@ -34,6 +54,7 @@ export default function CreateContest({ batchId, handleCreatetoggle, onContestCr
     }
   };
 
+  // Reset form fields
   const resetForm = () => {
     setTitle("");
     setDescription("");
@@ -50,14 +71,13 @@ export default function CreateContest({ batchId, handleCreatetoggle, onContestCr
       return;
     }
 
-    if (new Date(startTime) >= new Date(endTime)) {
+    if (DateTime.fromFormat(startTime, "yyyy-MM-dd'T'HH:mm") >= DateTime.fromFormat(endTime, "yyyy-MM-dd'T'HH:mm")) {
       toast.error("End time must be after start time");
       return;
     }
 
+    setLoading(true);
     try {
-      setLoading(true);
-
       const res = await fetch(`${server}/api/contests`, {
         method: "POST",
         headers: {
@@ -67,10 +87,10 @@ export default function CreateContest({ batchId, handleCreatetoggle, onContestCr
         body: JSON.stringify({
           title: title.trim(),
           description: description.trim(),
-          startTime,
-          endTime,
+          startTime: localInputToUTC(startTime),
+          endTime: localInputToUTC(endTime),
           tags: tags.split(",").map((tag) => tag.trim()).filter(Boolean),
-          batchId: batchId || null // ✅ Include batch ID if provided
+          batchId: batchId || null,
         }),
       });
 
@@ -83,7 +103,7 @@ export default function CreateContest({ batchId, handleCreatetoggle, onContestCr
       } else {
         toast.error(data.message || "Failed to create contest");
       }
-    } catch (err) {
+    } catch {
       toast.error("Error connecting to server");
     } finally {
       setLoading(false);
@@ -94,10 +114,11 @@ export default function CreateContest({ batchId, handleCreatetoggle, onContestCr
     <div
       className="modal-backdrop fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 animate-fadeIn"
       onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-contest-title"
     >
-      {/* Modal */}
       <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl p-6 relative animate-scaleIn">
-        
         {/* Close Button */}
         <button
           onClick={handleCreatetoggle}
@@ -107,10 +128,11 @@ export default function CreateContest({ batchId, handleCreatetoggle, onContestCr
           <FaTimes size={20} />
         </button>
 
-        <h1 className="text-2xl font-bold mb-6">Create Contest</h1>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          
+        <h1 id="create-contest-title" className="text-2xl font-bold mb-6">
+          Create Contest
+        </h1>
+
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           {/* Title */}
           <div>
             <label className="block font-medium mb-1">
@@ -123,6 +145,7 @@ export default function CreateContest({ batchId, handleCreatetoggle, onContestCr
               onChange={(e) => setTitle(e.target.value)}
               required
               placeholder="Enter contest title"
+              aria-required="true"
             />
           </div>
 
@@ -134,6 +157,7 @@ export default function CreateContest({ batchId, handleCreatetoggle, onContestCr
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe the contest..."
+              aria-multiline="true"
             />
           </div>
 
@@ -149,6 +173,7 @@ export default function CreateContest({ batchId, handleCreatetoggle, onContestCr
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
                 required
+                aria-required="true"
               />
             </div>
             <div>
@@ -161,6 +186,7 @@ export default function CreateContest({ batchId, handleCreatetoggle, onContestCr
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
                 required
+                aria-required="true"
               />
             </div>
           </div>
@@ -177,7 +203,7 @@ export default function CreateContest({ batchId, handleCreatetoggle, onContestCr
             />
           </div>
 
-          {/* Action */}
+          {/* Submit */}
           <div className="flex justify-end">
             <button
               type="submit"

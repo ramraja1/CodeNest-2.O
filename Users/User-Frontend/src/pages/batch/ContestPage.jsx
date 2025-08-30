@@ -144,22 +144,34 @@ export default function ContestPage() {
 
   // Handler to end contest
   const handleEndContest = async () => {
- 
+  try {
+    const res = await fetch(`${server}/api/contests/${contestId}/end`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-    try {
-      const res = await fetch(`${server}/api/contests/${contestId}/end`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to end contest");
-      toast.success("Contest ended successfully");
-      setConfirmEndOpen(false);
-      navigate(`/student/batch/${batchId}/contests`);  // Redirect user to batch
-      // Optionally refetch contest data or navigate away
-    } catch {
-      toast.error("Error ending contest");
+    const data = await res.json();
+
+    // Backend returns 400 for already ended
+    if (!res.ok) {
+      if (res.status === 400 && data.message === "Contest already ended") {
+        toast.info("Contest was already ended.");
+        setConfirmEndOpen(false);
+        // Optionally redirect: (You might want to always redirect?)
+        navigate(`/student/batch/${batchId}/contests`);
+        return;
+      }
+      throw new Error(data.message || "Failed to end contest");
     }
-  };
+    
+    toast.success("Contest ended successfully");
+    setConfirmEndOpen(false);
+    navigate(`/student/batch/${batchId}/contests`);
+  } catch (err) {
+    toast.error(err.message || "Error ending contest");
+  }
+};
+
 
   // Loading/Error UI
   if (loadingContest)
