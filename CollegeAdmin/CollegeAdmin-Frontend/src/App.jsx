@@ -16,6 +16,7 @@ import BatchOverview from "./pages/BatchOverview";
 import StudentProgressDashboard from "./pages/StudentProgressDashboard";
 import WarmupScreen from "./pages/WarmupScreen";
 import BatchStudentsDashboard from "./pages/BatchStudentsDashboard";
+import ManageResourcesDashboard from "./pages/ManageResources"
 /* ----------------------
    PRIVATE ROUTE
 ---------------------- */
@@ -223,6 +224,16 @@ function AppContent() {
             </PrivateRoute>
           }
         />
+
+        <Route
+          path="/manage-batches/:batchId/manage-resources"
+          element={
+            <PrivateRoute role="collegeadmin">
+              <ManageResourcesDashboard />
+            </PrivateRoute>
+          }
+        />
+
         <Route
           path="/manage-batches/:batchId/manage-students"
           element={

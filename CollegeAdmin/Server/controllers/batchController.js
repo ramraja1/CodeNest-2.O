@@ -1,4 +1,5 @@
 import Batch from '../models/Batch.js';
+import Contest from '../models/contest.js';
 import User from '../models/user.js';
 import crypto from 'crypto';
 
@@ -64,17 +65,33 @@ export const getBatches = async (req, res) => {
       }
     ]);
 
+    const contestCounts = await Contest.aggregate([
+  { $match: { collegeId } }, // Or tie to batchId if contests reference batches
+  {
+    $group: {
+      _id: "$batchId", // Or "$batch" if your field name is different
+      count: { $sum: 1 }
+    }
+  }
+]);
+
+
     // Attach student counts + batch code
-    const enrichedBatches = batches.map(batch => {
-      const counts = studentCounts.find(c => String(c._id) === String(batch._id)) || {};
-      return {
-        ...batch,
-        totalStudents: counts.total || 0,
-        approvedCount: counts.approved || 0,
-        pendingCount: counts.pending || 0,
-        batchCode: batch.batchCode
-      };
-    });
+  const enrichedBatches = batches.map(batch => {
+  // Find the student counts for this batch, or default to an empty object
+  const counts = studentCounts.find(c => String(c._id) === String(batch._id)) || {};
+  // Find the contest count for this batch, or default to 0
+  const contestCount = contestCounts.find(c => String(c._id) === String(batch._id))?.count || 0;
+  return {
+    ...batch,
+    totalStudents: batch.students.length || 0,
+    approvedCount: counts.approved || 0,
+    pendingCount: counts.pending || 0,
+    totalContests: contestCount,
+    batchCode: batch.batchCode,
+  };
+});
+
 
     res.json(enrichedBatches);
   } catch (err) {
