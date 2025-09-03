@@ -15,7 +15,7 @@ import { useContext } from "react";
 import { UserContext } from "../context/UserContext.jsx";  // adjust path as needed
 
 
-export default function ProblemSolveView({ questions = [], initialProblemId, onBack }) {
+export default function ProblemSolveView({ questions = [], initialProblemId, userSubmissions = [],onBack }) {
   const [activeProblemId, setActiveProblemId] = useState(
     initialProblemId || (questions[0] && questions._id)
   );
@@ -89,6 +89,26 @@ export default function ProblemSolveView({ questions = [], initialProblemId, onB
       setCode((old) => ({ ...old, [activeProblem._id]: value }));
     }
   };
+
+
+  ///
+  const latestSubmissionMap = React.useMemo(() => {
+  const map = new Map();
+  userSubmissions.forEach(sub => {
+    const existing = map.get(sub.problemId);
+    if (!existing || new Date(sub.submittedAt) > new Date(existing.submittedAt)) {
+      map.set(sub.problemId, sub);
+    }
+  });
+  return map;
+}, [userSubmissions]);
+
+function getProblemStatus(id) {
+  const sub = latestSubmissionMap.get(id);
+  if (!sub) return "notAttempted";
+  return sub.score > 0 ? "solved" : "attempted";
+}
+
 
   useEffect(() => {
   async function fetchLastSubmission() {
@@ -349,42 +369,56 @@ export default function ProblemSolveView({ questions = [], initialProblemId, onB
                 <XMarkIcon className="h-6 w-6" />
               </button>
             </div>
-            <ul>
-              {questions.map((q, idx) => (
-                <li
-                  key={q._id}
-                  onClick={() => {
-                    setActiveProblemId(q._id);
-                    setProblemListOpen(false);
-                    setFullEditor(false);
-                    setOutput("");
-                    setError("");
-                    setSubmitStatusOpen(false);
-                  }}
-                  className={`cursor-pointer px-4 py-3 border-b border-gray-700 hover:bg-emerald-600 hover:text-white transition ${
-                    q._id === activeProblemId ? "bg-emerald-600 text-white font-semibold" : ""
-                  }`}
-                  title={`${q.title} (${q.difficulty})`}
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="truncate">
-                      Q{idx + 1}. {q.title}
-                    </span>
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded ${
-                        q.difficulty === "Easy"
-                          ? "bg-green-500"
-                          : q.difficulty === "Medium"
-                          ? "bg-yellow-500"
-                          : "bg-red-500"
-                      }`}
-                    >
-                      {q.difficulty}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+   <ul>
+  {questions.map((q, idx) => {
+    const status = getProblemStatus(q._id);
+    const baseClasses =
+      "cursor-pointer px-4 py-3 border-b border-gray-300 hover:bg-blue-100 hover:text-blue-900 transition duration-200 ease-in-out rounded-md";
+    const activeClasses = q._id === activeProblemId
+      ? "bg-blue-200 text-blue-900 font-semibold shadow-md"
+      : "";
+    
+    const statusClasses =
+      status === "solved"
+        ? "bg-green-100 text-green-800 font-semibold"
+        : status === "attempted"
+        ? "bg-yellow-100 text-yellow-800 font-semibold"
+        : "bg-white text-gray-800";
+
+    return (
+      <li
+        key={q._id}
+        onClick={() => {
+          setActiveProblemId(q._id);
+          setProblemListOpen(false);
+          setFullEditor(false);
+          setOutput("");
+          setError("");
+          setSubmitStatusOpen(false);
+        }}
+        className={`${baseClasses} ${activeClasses} ${statusClasses}`}
+        title={`${q.title} (${q.difficulty})`}
+      >
+        <div className="flex justify-between items-center">
+          <span className="truncate">{`Q${idx + 1}. ${q.title}`}</span>
+          <span
+            className={`text-xs px-2 py-0.5 rounded ${
+              q.difficulty === "Easy"
+                ? "bg-green-200 text-green-900"
+                : q.difficulty === "Medium"
+                ? "bg-yellow-200 text-yellow-900"
+                : "bg-red-200 text-red-900"
+            }`}
+          >
+            {q.difficulty}
+          </span>
+        </div>
+      </li>
+    );
+  })}
+</ul>
+
+
           </div>
           <div className="flex-1" onClick={() => setProblemListOpen(false)} />
         </aside>

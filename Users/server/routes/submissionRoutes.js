@@ -76,27 +76,26 @@ router.post("/", authMiddleware, async (req, res) => {
 // Get latest submission for a user/problem/contest
 router.get("/", authMiddleware, async (req, res) => {
   const userId = req.user._id;
-  const { problemId, contestId } = req.query;
+  const { contestId } = req.query;
 
-  if (!problemId || !contestId) {
-    return res
-      .status(400)
-      .json({ message: "problemId and contestId query required." });
+
+
+  if (!contestId) {
+    return res.status(400).json({ message: "contestId query required." });
   }
 
   try {
-    const submission = await Submission.findOne({
+    const submissions = await Submission.find({
       userId,
-      problemId,
       contestId,
-    }).sort({ submittedAt: -1 }); // get latest
-
-    res.json({ submission });
+    });
+    res.json({ submissions });
   } catch (error) {
-    console.error("Fetch submission error:", error);
-    res.status(500).json({ message: "Failed to fetch submission" });
+    console.error("Fetch submissions error:", error);
+    res.status(500).json({ message: "Failed to fetch submissions" });
   }
-}); // controllers/submissionController.js
+});
+
 
 
 router.get("/contests", authMiddleware, async (req, res) => {

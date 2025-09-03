@@ -66,7 +66,7 @@ export default function ContestPage() {
   }, [contestInfo, contestId, server, token]);
 
   // Fetch user submissions
-  useEffect(() => {
+  const fetchUserSubmissions = useCallback(() => {
     if (!userId || !contestId) return;
     setLoadingUserSubs(true);
 
@@ -82,7 +82,31 @@ export default function ContestPage() {
       .finally(() => setLoadingUserSubs(false));
   }, [userId, contestId, server, token]);
 
-  // Fetch leaderboard
+  useEffect(() => {
+    fetchUserSubmissions();
+  }, [fetchUserSubmissions]);
+
+  // Polling to refresh submissions and leaderboard every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchUserSubmissions();
+
+      if (!contestId) return;
+      fetch(`${server}/api/contests/${contestId}/leaderboard?top=5`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(async (res) => {
+          if (!res.ok) throw new Error("Failed to fetch leaderboard");
+          return await res.json();
+        })
+        .then((data) => setLeaderboard(data.leaderboard || []))
+        .catch(() => {/* silent fail */});
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [fetchUserSubmissions, contestId, server, token]);
+
+  // Initial leaderboard fetch
   useEffect(() => {
     if (!contestId) return;
     setLoadingLeaderboard(true);
@@ -129,55 +153,70 @@ export default function ContestPage() {
     }
   }, [initialProblemIdFromUrl, currentProblemId]);
 
-  // Get problem status
+  // Memoize latest submission per problem
+  const latestSubmissionsMap = React.useMemo(() => {
+    const map = new Map();
+    userSubmissions.forEach(sub => {
+      const existing = map.get(sub.problemId);
+      if (!existing || new Date(sub.submittedAt) > new Date(existing.submittedAt)) {
+        map.set(sub.problemId, sub);
+      }
+    });
+    return map;
+  }, [userSubmissions]);
+
+  // Get problem status based on latest submission
   const getProblemStatus = useCallback(
     (problemId) => {
-      const submission = userSubmissions.find((s) => s.problemId === problemId);
+      const submission = latestSubmissionsMap.get(problemId);
       if (!submission) return "notAttempted";
       return submission.score > 0 ? "solved" : "attempted";
     },
-    [userSubmissions]
+    [latestSubmissionsMap]
   );
+
+  // Update submissions state on new submission (called by ProblemSolveView)
+  const handleSubmissionUpdate = (newSubmission) => {
+    setUserSubmissions(prevSubs => {
+      const filtered = prevSubs.filter(s => s.problemId !== newSubmission.problemId);
+      return [...filtered, newSubmission];
+    });
+  };
 
   // Total score calculation
   const totalContestScore = userSubmissions.reduce((sum, s) => sum + (s.score || 0), 0);
 
   // Handler to end contest
   const handleEndContest = async () => {
-  try {
-    const res = await fetch(`${server}/api/contests/${contestId}/end`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    try {
+      const res = await fetch(`${server}/api/contests/${contestId}/end`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    // Backend returns 400 for already ended
-    if (!res.ok) {
-      if (res.status === 400 && data.message === "Contest already ended") {
-        toast.info("Contest was already ended.");
-        setConfirmEndOpen(false);
-        // Optionally redirect: (You might want to always redirect?)
-        navigate(`/student/batch/${batchId}/contests`);
-        return;
+      if (!res.ok) {
+        if (res.status === 400 && data.message === "Contest already ended") {
+          toast.info("Contest was already ended.");
+          setConfirmEndOpen(false);
+          navigate(`/student/batch/${batchId}/contests`);
+          return;
+        }
+        throw new Error(data.message || "Failed to end contest");
       }
-      throw new Error(data.message || "Failed to end contest");
-    }
-    
-    toast.success("Contest ended successfully");
-    setConfirmEndOpen(false);
-    navigate(`/student/batch/${batchId}/contests`);
-  } catch (err) {
-    toast.error(err.message || "Error ending contest");
-  }
-};
 
+      toast.success("Contest ended successfully");
+      setConfirmEndOpen(false);
+      navigate(`/student/batch/${batchId}/contests`);
+    } catch (err) {
+      toast.error(err.message || "Error ending contest");
+    }
+  };
 
   // Loading/Error UI
-  if (loadingContest)
-    return <CenteredMessage message="Loading contest details..." />;
-  if (error)
-    return <CenteredMessage message={error} isError />;
+  if (loadingContest) return <CenteredMessage message="Loading contest details..." />;
+  if (error) return <CenteredMessage message={error} isError />;
 
   // Problem solve view
   if (currentProblemId) {
@@ -189,126 +228,123 @@ export default function ContestPage() {
           setCurrentProblemId(null);
           setSearchParams({});
         }}
+        userSubmissions={userSubmissions}
         userId={userId}
         token={token}
+        onSubmissionUpdate={handleSubmissionUpdate} // This prop supports instant refresh on submit
       />
     );
   }
 
   return (
     <main className="min-h-screen bg-gray-50 p-6 md:p-12 text-gray-900 font-sans select-none max-w-7xl mx-auto">
-  {/* Header */}
-  <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-    <button
-      onClick={() => navigate(`/student/batch/${batchId}/contests`)}
-      className="text-sm font-semibold px-4 py-2 border rounded border-gray-300 hover:bg-gray-200 transition"
-    >
-      ← Back to Batch
-    </button>
-    <div className="flex flex-col sm:items-center gap-1">
-      <h1 className="text-3xl font-bold text-gray-800">{contestInfo?.title}</h1>
-      <p className={classNames(
-           "text-sm font-semibold", 
-           timeLeft === "00:00:00" ? "text-red-600" : "text-green-700"
-      )}>
-        {timeLeft === "00:00:00" ? "Contest Ended" : `Live — ${timeLeft} left`}
-      </p>
-    </div>
-    <button
-      onClick={() => setConfirmEndOpen(true)}
-      className="self-start sm:self-auto px-4 py-2 rounded bg-red-600 text-white font-semibold hover:bg-red-700 shadow"
-    >
-      End Contest
-    </button>
-  </header>
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <button
+          onClick={() => navigate(`/student/batch/${batchId}/contests`)}
+          className="text-sm font-semibold px-4 py-2 border rounded border-gray-300 hover:bg-gray-200 transition"
+        >
+          ← Back to Batch
+        </button>
+        <div className="flex flex-col sm:items-center gap-1">
+          <h1 className="text-3xl font-bold text-gray-800">{contestInfo?.title}</h1>
+          <p
+            className={classNames(
+              "text-sm font-semibold",
+              timeLeft === "00:00:00" ? "text-red-600" : "text-green-700"
+            )}
+          >
+            {timeLeft === "00:00:00" ? "Contest Ended" : `Live — ${timeLeft} left`}
+          </p>
+        </div>
+        <button
+          onClick={() => setConfirmEndOpen(true)}
+          className="self-start sm:self-auto px-4 py-2 rounded bg-red-600 text-white font-semibold hover:bg-red-700 shadow"
+        >
+          End Contest
+        </button>
+      </header>
 
-  {/* Description */}
-  <section className="mb-8 bg-white rounded-lg p-6 border border-gray-200">
-    <p className="text-gray-700 mb-2">{contestInfo?.description || "No contest description."}</p>
-    <p className="text-sm text-gray-500">
-      <strong>Prizes:</strong>{" "}
-      <span className="text-yellow-600 font-semibold">{contestInfo?.prizes || "TBD"}</span>
-    </p>
-    <p className="mt-1 text-xs text-gray-400">
-      Ends on: {new Date(contestInfo?.endTime).toLocaleString()}
-    </p>
-  </section>
+      <section className="mb-8 bg-white rounded-lg p-6 border border-gray-200">
+        <p className="text-gray-700 mb-2">{contestInfo?.description || "No contest description."}</p>
+        <p className="text-sm text-gray-500">
+          <strong>Prizes:</strong>{" "}
+          <span className="text-yellow-600 font-semibold">{contestInfo?.prizes || "TBD"}</span>
+        </p>
+        <p className="mt-1 text-xs text-gray-400">
+          Ends on: {new Date(contestInfo?.endTime).toLocaleString()}
+        </p>
+      </section>
 
-  {/* Main 2-column Layout */}
-  <div className="flex gap-8">
-    {/* Problems List, scrollable */}
-    <section className="flex-1 overflow-y-auto max-h-[70vh] pr-1">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {loadingQuestions ? (
-          <CenteredMessage message="Loading questions..." />
-        ) : questions.length === 0 ? (
-          <CenteredMessage message="No questions found." />
-        ) : (
-          questions.map((q, i) => (
-            <QuestionCard
-              key={q._id}
-              question={q}
-              index={i}
-              status={getProblemStatus(q._id)}
-              onSelect={() => {
-                setCurrentProblemId(q._id);
-                setSearchParams({ problemId: q._id });
-              }}
-            />
-          ))
-        )}
-      </div>
-    </section>
-
-    {/* Leaderboard - sticky on right */}
-    <aside className="w-full max-w-xs hidden lg:block">
-      <div className="sticky top-24">
-        <section className="bg-white p-6 rounded-lg border border-gray-200">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="font-bold text-lg text-gray-800">Leaderboard Preview</h2>
-            <button
-              onClick={() => navigate(`/student/batch/${batchId}/contests/${contestId}/leaderboard`)}
-              className="text-indigo-600 hover:underline text-sm font-medium"
-            >
-              View Full →
-            </button>
+      <div className="flex gap-8">
+        <section className="flex-1 overflow-y-auto max-h-[70vh] pr-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {loadingQuestions ? (
+              <CenteredMessage message="Loading questions..." />
+            ) : questions.length === 0 ? (
+              <CenteredMessage message="No questions found." />
+            ) : (
+              questions.map((q, i) => (
+                <QuestionCard
+                  key={q._id}
+                  question={q}
+                  index={i}
+                  status={getProblemStatus(q._id)}
+                  onSelect={() => {
+                    setCurrentProblemId(q._id);
+                    setSearchParams({ problemId: q._id });
+                  }}
+                />
+              ))
+            )}
           </div>
-          {loadingLeaderboard ? (
-            <CenteredMessage message="Loading leaderboard..." />
-          ) : leaderboard.length === 0 ? (
-            <CenteredMessage message="No leaderboard data available." />
-          ) : (
-            <ol className="divide-y divide-gray-200">
-              {leaderboard.map((entry, idx) => (
-                <li
-                  key={entry._id}
-                  className={classNames(
-                    "flex justify-between py-2",
-                    entry._id === userId ? "bg-indigo-100 font-semibold rounded px-2" : ""
-                  )}
-                >
-                  <span>#{idx + 1} {entry.username || "User"}</span>
-                  <span className="text-indigo-700 font-semibold">{entry.totalScore}</span>
-                </li>
-              ))}
-            </ol>
-          )}
         </section>
+
+        <aside className="w-full max-w-xs hidden lg:block">
+          <div className="sticky top-24">
+            <section className="bg-white p-6 rounded-lg border border-gray-200">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="font-bold text-lg text-gray-800">Leaderboard Preview</h2>
+                <button
+                  onClick={() => navigate(`/student/batch/${batchId}/contests/${contestId}/leaderboard`)}
+                  className="text-indigo-600 hover:underline text-sm font-medium"
+                >
+                  View Full →
+                </button>
+              </div>
+              {loadingLeaderboard ? (
+                <CenteredMessage message="Loading leaderboard..." />
+              ) : leaderboard.length === 0 ? (
+                <CenteredMessage message="No leaderboard data available." />
+              ) : (
+                <ol className="divide-y divide-gray-200">
+                  {leaderboard.map((entry, idx) => (
+                    <li
+                      key={entry._id}
+                      className={classNames(
+                        "flex justify-between py-2",
+                        entry._id === userId ? "bg-indigo-100 font-semibold rounded px-2" : ""
+                      )}
+                    >
+                      <span>#{idx + 1} {entry.username || "User"}</span>
+                      <span className="text-indigo-700 font-semibold">{entry.totalScore}</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
+          </div>
+        </aside>
       </div>
-    </aside>
-  </div>
 
-  {/* Confirmation Modal, etc. */}
-  {confirmEndOpen && (
-    <ConfirmationModal
-      title="End Contest"
-      message="Are you sure you want to end this contest? This action cannot be undone."
-      onConfirm={handleEndContest}
-      onCancel={() => setConfirmEndOpen(false)}
-    />
-  )}
-</main>
-
+      {confirmEndOpen && (
+        <ConfirmationModal
+          title="End Contest"
+          message="Are you sure you want to end this contest? This action cannot be undone."
+          onConfirm={handleEndContest}
+          onCancel={() => setConfirmEndOpen(false)}
+        />
+      )}
+    </main>
   );
 }
 
@@ -318,7 +354,6 @@ const CenteredMessage = ({ message, isError = false }) => (
     {message}
   </div>
 );
-
 
 // Question card component
 const QuestionCard = ({ question, index, status, onSelect }) => {
@@ -349,23 +384,28 @@ const QuestionCard = ({ question, index, status, onSelect }) => {
       <span className="text-xs font-semibold px-2 py-1 rounded select-none bg-opacity-60 self-start">
         {statusText[status]}
       </span>
-      <button
-        type="button"
-        className="mt-auto self-end rounded-full bg-indigo-600 text-white px-4 py-1 font-semibold hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 mt-4"
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect();
-        }}
-      >
-        Start
-      </button>
+    <button
+  type="button"
+  className={classNames(
+    "mt-auto self-end rounded-full px-4 py-1 font-semibold focus:outline-none focus-visible:ring-2 mt-4",
+    status === "solved"
+      ? "bg-green-600 text-white hover:bg-green-700 focus-visible:ring-green-500"
+      : "bg-indigo-600 text-white hover:bg-indigo-700 focus-visible:ring-indigo-500"
+  )}
+  onClick={(e) => {
+    e.stopPropagation();
+    onSelect();
+  }}
+>
+  {status === "solved" ? "Solved" : "Start"}
+</button>
+
     </div>
   );
 };
 
-// Simple reusable confirmation modal
+// Confirmation modal component
 const ConfirmationModal = ({ title, message, onConfirm, onCancel }) => {
-  // Close on Escape key
   useEffect(() => {
     function onKeyDown(e) {
       if (e.key === "Escape") onCancel();
@@ -373,7 +413,6 @@ const ConfirmationModal = ({ title, message, onConfirm, onCancel }) => {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onCancel]);
-
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
