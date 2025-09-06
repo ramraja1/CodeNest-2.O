@@ -195,7 +195,7 @@ const {
     </div>
 
     {/* Manage Resources */}
-    <div
+<div    
       onClick={() => navigate(`/manage-batches/${id}/manage-resources`)}
       className="bg-white p-6 rounded-xl shadow border border-gray-100 hover:shadow-lg transition cursor-pointer flex items-center gap-4 hover:border-purple-400 outline-none"
       role="button"
