@@ -20,10 +20,7 @@ dotenv.config();
 const app = express();
 
 // ===== Middlewares =====
-app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true,
-}));
+app.use(cors());
 app.use(bodyParser.json()); // Parses application/json
 app.use(express.urlencoded({ extended: true })); // Parses application/x-www-form-urlencoded
 
