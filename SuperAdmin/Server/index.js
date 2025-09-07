@@ -8,6 +8,7 @@ import {
   getApprovedColleges,
   approveCollege,
   rejectCollege,
+  stopServiceCollege,
   getStats
 } from './controllers/superAdminController.js';
 import { protectSuperAdmin } from './middleware/authMiddleware.js';
@@ -40,6 +41,7 @@ app.get("/api/superadmin/colleges/approved", protectSuperAdmin, getApprovedColle
 
 app.get('/api/superadmin/colleges/pending', protectSuperAdmin, getPendingColleges);
 app.post('/api/superadmin/colleges/:id/approve', protectSuperAdmin, approveCollege);
+app.post('/api/superadmin/colleges/:id/stop', protectSuperAdmin, stopServiceCollege);
 app.post('/api/superadmin/colleges/:id/reject', protectSuperAdmin, rejectCollege);
 app.get('/api/superadmin/stats', protectSuperAdmin, getStats);
 

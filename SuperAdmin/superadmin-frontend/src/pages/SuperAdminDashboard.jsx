@@ -18,6 +18,26 @@ export default function SuperAdminDashboard() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+// Add this handler inside SuperAdminDashboard
+const handleStopService = async (id) => {
+  try {
+    const res = await fetch(
+       `${import.meta.env.VITE_SERVER}/api/superadmin/colleges/${id}/stop`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+    if (res.ok) {
+      setApprovedColleges(prev => prev.filter(c => c._id !== id));
+      toast.success("College service stopped.");
+    } else {
+      toast.error("Failed to stop service");
+    }
+  } catch {
+    toast.error("Error connecting to server");
+  }
+};
 
   
   useEffect(() => {
@@ -172,16 +192,18 @@ export default function SuperAdminDashboard() {
       </SectionWrapper>
 
       {/* Approved Colleges List — Allow reject/deactivate */}
-      <SectionWrapper title="Approved Colleges">
-        {approvedColleges.length === 0 ? (
-          <div className="text-gray-500">No approved colleges found.</div>
-        ) : (
-          <CollegeApprovalList
-            colleges={approvedColleges}
-            onAction={(id) => handleApproval(id, false)} // false = reject/deactivate
-          />
-        )}
-      </SectionWrapper>
+     <SectionWrapper title="Approved Colleges">
+  {approvedColleges.length === 0 ? (
+    <div className="text-gray-500">No approved colleges found.</div>
+  ) : (
+    <CollegeApprovalList
+      colleges={approvedColleges}
+      status="approved"
+      onStopService={handleStopService}
+    />
+  )}
+</SectionWrapper>
+
     </div>
   );
 }

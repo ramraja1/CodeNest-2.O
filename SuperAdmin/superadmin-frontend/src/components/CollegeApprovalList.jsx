@@ -1,4 +1,4 @@
-export default function CollegeApprovalList({ colleges, onAction ,status }) {
+export default function CollegeApprovalList({ colleges, onAction, status, onStopService }) {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full bg-white rounded shadow">
@@ -23,23 +23,33 @@ export default function CollegeApprovalList({ colleges, onAction ,status }) {
                   : "-"}
               </td>
               <td className="py-2 px-4 flex gap-2">
-                {
-                  status=="pending"? <button
-                  onClick={() => onAction(college._id, true)}
-                  className="px-3 py-1 rounded bg-emerald-600 text-white hover:bg-emerald-700"
-                  title="Approve"
-                >
-                  Approve
-                </button> : null
-                }
-                
-                <button
-                  onClick={() => onAction(college._id, false)}
-                  className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600"
-                  title="Reject"
-                >
-                  Reject
-                </button>
+                {status === "pending" && (
+                  <>
+                    <button
+                      onClick={() => onAction(college._id, true)}
+                      className="px-3 py-1 rounded bg-emerald-600 text-white hover:bg-emerald-700"
+                      title="Approve"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => onAction(college._id, false)}
+                      className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600"
+                      title="Reject"
+                    >
+                      Reject
+                    </button>
+                  </>
+                )}
+                {status !== "pending" && onStopService && (
+                  <button
+                    onClick={() => onStopService(college._id)}
+                    className="px-3 py-1 rounded bg-yellow-600 text-white hover:bg-yellow-700"
+                    title="Stop Service"
+                  >
+                    Stop Service
+                  </button>
+                )}
               </td>
             </tr>
           ))}

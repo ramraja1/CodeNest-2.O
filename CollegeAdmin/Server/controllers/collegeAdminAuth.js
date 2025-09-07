@@ -19,7 +19,7 @@ export const loginCollegeAdmin = async (req, res) => {
     const token = jwt.sign(
       { id: user._id, role: user.role, collegeId: user.collegeId._id },
       process.env.JWT_SECRET,
-      { expiresIn: '1d' }
+      { expiresIn: '7d' }
     );
 
     res.json({ token, role: user.role, college: user.collegeId.name });

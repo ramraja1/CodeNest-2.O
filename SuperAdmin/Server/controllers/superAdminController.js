@@ -53,6 +53,22 @@ export const rejectCollege = async (req, res) => {
   }
 };
 
+
+// stop services
+export const stopServiceCollege = async (req, res) => {
+  try {
+    const college = await College.findById(req.params.id);
+    if (!college) return res.status(404).json({ message: 'College not found' });
+
+    college.status = 'pending';
+    await college.save();
+
+    res.json({ message: 'College Service get stoped successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
 // Stats for dashboard
 export const getStats = async (req, res) => {
   try {
