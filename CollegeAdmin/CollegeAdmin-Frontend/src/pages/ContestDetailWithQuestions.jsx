@@ -21,7 +21,9 @@ import ConfirmModal from "../components/DeleteContest";
 import EditQuestionModal from "../components/EditQuestion";
 import AddQuestionModal from "../components/AddQuestionModal";
 import ContestOverviewSkeleton from "../components/skeleton/ContestOverviewSkeleton";
+import { ChatBotModal } from "../components/ChatBotModal";
 
+import RobotAssistant from "../components/RobotAssistant";
 // ───────────────────────────────
 // Reusable UI Components
 // ───────────────────────────────
@@ -245,13 +247,16 @@ export default function ContestOverview() {
   const { id, batchId } = useParams();
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-
+  const [showChatbotModal,setShowChatbotModal]=useState(false);
   const [contest, setContest] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const isSuccess =()=>{
+    fetchContestQuestions();
+  }
   // Modals state
+
   const [editContestToggle, setEditContestToggle] = useState(false);
   const [showAddQuestion, setShowAddQuestion] = useState(false);
   const [showEditQuestion, setShowEditQuestion] = useState(false);
@@ -409,17 +414,28 @@ export default function ContestOverview() {
         />
 
         <article className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6">
-          <header className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
-              Challenge Questions
-            </h2>
-            <ActionButton
-              onClick={() => setShowAddQuestion(true)}
-              className="bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500"
-            >
-              <FaPlus /> Add
-            </ActionButton>
-          </header>
+         <header className="flex justify-between items-center mb-6">
+  <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
+    Challenge Questions
+  </h2>
+  <div className="flex gap-2">
+    <ActionButton
+      onClick={() => setShowAddQuestion(true)}
+      className="bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500"
+      title="Add a new question manually"
+    >
+      <FaPlus className="mr-2" /> Add Question
+    </ActionButton>
+    <ActionButton
+      onClick={() => setShowChatbotModal(true)} // Open the ChatBot modal
+      className="bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500"
+      title="Let AI generate questions for you"
+    >
+      <span className="mr-2">🤖</span>Add with AI
+    </ActionButton>
+  </div>
+</header>
+
 
           {questions.length === 0 ? (
             <EmptyState
@@ -519,6 +535,15 @@ export default function ContestOverview() {
           onCancel={() => setShowConfirm(false)}
         />
       )}
+      {showChatbotModal && (
+  <ChatBotModal
+    onClose={() => setShowChatbotModal(false)}
+    contestID={id}
+    addSuccess={isSuccess}
+  />
+)}
+
+ <RobotAssistant onClick={() => setShowBot(true)} size={80} />
     </main>
   );
 }

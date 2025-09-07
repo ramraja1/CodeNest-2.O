@@ -10,7 +10,7 @@ import {
 } from "react-icons/fa";
 import AddBatchModal from "../components/AddBatchModel";
 import BatchSkeleton from "../components/skeleton/BatchSkeleton";
-
+import RobotAssistant from "../components/RobotAssistant";
 export default function ManageBatchesDashboard() {
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -138,6 +138,7 @@ export default function ManageBatchesDashboard() {
       {addToggle && (
         <AddBatchModal onClose={handleAddBatches} onSaved={fetchBatches} />
       )}
+       <RobotAssistant onClick={() => setShowBot(true)} size={80} />
     </div>
   );
 }

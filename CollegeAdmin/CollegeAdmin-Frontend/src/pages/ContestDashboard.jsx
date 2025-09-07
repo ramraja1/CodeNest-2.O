@@ -10,7 +10,7 @@ import {
 } from "react-icons/fa";
 import CreateContest from "../components/CreateContest";
 import ContestDashboardSkeleton from "../components/skeleton/ContestDashboardSkeleton";
-
+import RobotAssistant from "../components/RobotAssistant";
 // ✅ Reusable Banner Component
 function ErrorBanner({ message }) {
   if (!message) return null;
@@ -305,6 +305,7 @@ export default function CollegeAdminContestDashboard() {
           onContestCreated={fetchContests}
         />
       )}
+       <RobotAssistant onClick={() => setShowBot(true)} size={80} />
     </div>
   );
 }

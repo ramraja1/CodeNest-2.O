@@ -13,13 +13,17 @@ import questionRoutes from './routes/questionRoutes.js'
 import authRoutes from './routes/authRoutes.js';
 import batchesRoutes from './routes/batchRoutes.js'
 import question from './models/question.js';
+import chatbotRoutes from './routes/chatbotRoutes.js'
 
 dotenv.config();
 
 const app = express();
 
 // ===== Middlewares =====
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(bodyParser.json()); // Parses application/json
 app.use(express.urlencoded({ extended: true })); // Parses application/x-www-form-urlencoded
 
@@ -44,6 +48,9 @@ app.use("/api/batches", batchesRoutes );
 app.use("/api/contests", contestRoutes);
 //question
 app.use("/api/questions",questionRoutes);
+
+// chatbot
+app.use("/api/chatbot",chatbotRoutes);
 
 // ===== Health Check =====
 app.get('/', (req, res) => {

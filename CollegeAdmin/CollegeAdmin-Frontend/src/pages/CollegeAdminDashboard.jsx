@@ -11,7 +11,7 @@ import {
 } from "react-icons/fa";
 
 import CollegeAdminDashboardSkeleton from "../components/skeleton/CollegeAdminDashboardSkeleton";
-
+import RobotAssistant from "../components/RobotAssistant";
 
 
 
@@ -176,7 +176,7 @@ function ActionCard({ title, description, icon, buttonLabel, onClick }) {
       >
         {buttonLabel}
       </button>
-
+ <RobotAssistant onClick={() => setShowBot(true)} size={80} />
     </div>
   );
 }

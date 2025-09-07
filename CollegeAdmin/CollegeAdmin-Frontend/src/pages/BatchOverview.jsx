@@ -14,9 +14,9 @@ import EditBatchModal from "../components/EditBatch";
 import ConfirmModal from "../components/DeleteContest";
 import BatchOverviewSkeleton from "../components/skeleton/BatchOverviewSkeleton";
 import { useLocation } from "react-router-dom";
-
+import RobotAssistant from "../components/RobotAssistant";
 export default function BatchOverview() {
-
+const [showBot, setShowBot] = useState(false);
   const location = useLocation();
 const {
   totalStudents = 0,
@@ -223,6 +223,7 @@ const {
           onCancel={() => setDeleteBatchToggle(false)}
         />
       )}
+      <RobotAssistant onClick={() => setShowBot(true)} size={80} />
 </div>
 
   );
