@@ -1,6 +1,9 @@
 import Batch from "../models/Batch.js";
 import User from "../models/user.js";
 import Contest from '../models/contest.js';  // import your Contest model
+
+import Resource from "../models/Resource.js";
+
 // Student joins batch via code
 export const joinBatchByCode = async (req, res) => {
   try {
@@ -110,5 +113,21 @@ export const leaveBatch = async (req, res) => {
   } catch (err) {
     console.error("Leave Batch Error:", err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getResourcesByBatchId = async (req, res) => {
+  try {
+    const { batchId } = req.params;
+
+    // Optionally, verify if req.user is enrolled in this batch here (for authorization)
+
+    // Fetch resources for the given batchId only
+    const resources = await Resource.find({ batchId });
+
+    res.json({ resources });
+  } catch (error) {
+    console.error("Failed to fetch resources:", error);
+    res.status(500).json({ message: "Failed to fetch resources" });
   }
 };

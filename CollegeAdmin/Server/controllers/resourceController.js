@@ -15,24 +15,27 @@ export const addResource = async (req, res) => {
   try {
     const { id } = req.params; // batchId
     const { title, description } = req.body;
-   
+
     let fileUrl = null;
     if (req.cloudinaryUrl) {
-      fileUrl = req.cloudinaryUrl;
+      fileUrl = req.cloudinaryUrl;  // Correct here: assign req.cloudinaryUrl to fileUrl
     } else if (req.file) {
-      fileUrl = req.file.path;
+      fileUrl = req.file.path;  // Correct here too
     }
+
     const resource = await Resource.create({
       batchId: id,
       title,
       description,
       fileUrl,
     });
+
     res.status(201).json({ resource });
   } catch (error) {
     res.status(500).json({ message: "Failed to add resource" });
   }
 };
+
 
 // EDIT resource
 export const editResource = async (req, res) => {
@@ -40,16 +43,23 @@ export const editResource = async (req, res) => {
     const { id } = req.params; // resourceId
     const { title, description } = req.body;
     let updates = { title, description };
-    if (req.file) {
+
+    // Prefer req.cloudinaryUrl if uploaded via Cloudinary
+    if (req.cloudinaryUrl) {
+      updates.fileUrl = req.cloudinaryUrl;
+    } else if (req.file) {
       updates.fileUrl = req.file.path;
     }
+
     const updated = await Resource.findByIdAndUpdate(id, updates, { new: true });
     if (!updated) return res.status(404).json({ message: "Resource not found" });
+
     res.json({ resource: updated });
   } catch (error) {
     res.status(500).json({ message: "Failed to update resource" });
   }
 };
+
 
 // DELETE resource
 export const deleteResource = async (req, res) => {

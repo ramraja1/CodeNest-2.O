@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
-import { FaPlus, FaEdit, FaTrash, FaFileAlt, FaArrowLeft } from "react-icons/fa";
+import {
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaFileAlt,
+  FaArrowLeft,
+} from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useParams, Link } from "react-router-dom";
-
+import PdfViewerModal from "../components/PdfViewerModal";
 function ConfirmationModal({ message, onConfirm, onCancel, loading }) {
   return (
     <div
@@ -220,11 +226,14 @@ function EditResourceModal({ resource, onClose, onSaved }) {
       formData.append("description", description);
       if (file) formData.append("file", file);
 
-      const res = await fetch(`${server}/api/batches/${resource.id}/EditResource`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
+      const res = await fetch(
+        `${server}/api/batches/${resource.id}/EditResource`,
+        {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        }
+      );
 
       if (!res.ok) {
         const data = await res.json();
@@ -281,7 +290,7 @@ export default function ManageResourcesDashboard() {
   const token = localStorage.getItem("token");
   const server = import.meta.env.VITE_SERVER;
   const { batchId } = useParams();
-
+  const [showPdf, setShowPdf] = useState(null); // holds fileUrl or null
   useEffect(() => {
     fetchResources();
   }, [batchId]);
@@ -358,7 +367,9 @@ export default function ManageResourcesDashboard() {
       ) : error ? (
         <p className="text-red-600 font-semibold">Error: {error}</p>
       ) : resources.length === 0 ? (
-        <p className="text-gray-500 text-lg italic select-none">No resources found. Add some!</p>
+        <p className="text-gray-500 text-lg italic select-none">
+          No resources found. Add some!
+        </p>
       ) : (
         <ul className="space-y-8">
           {resources.map(({ _id, title, description, fileUrl }) => (
@@ -367,27 +378,39 @@ export default function ManageResourcesDashboard() {
               className="flex flex-col sm:flex-row justify-between p-6 border border-gray-200 rounded-3xl shadow-md hover:shadow-lg transition"
             >
               <div className="flex items-start gap-7 flex-grow min-w-0">
-                <FaFileAlt className="text-indigo-700 text-4xl mt-1 flex-shrink-0" aria-hidden="true" />
+                <FaFileAlt
+                  className="text-indigo-700 text-4xl mt-1 flex-shrink-0"
+                  aria-hidden="true"
+                />
                 <div className="min-w-0">
-                  <h2 className="text-2xl font-semibold leading-tight truncate">{title}</h2>
+                  <h2 className="text-2xl font-semibold leading-tight truncate">
+                    {title}
+                  </h2>
                   {description && (
-                    <p className="text-gray-700 text-base line-clamp-3 mt-2 select-text">{description}</p>
+                    <p className="text-gray-700 text-base line-clamp-3 mt-2 select-text">
+                      {description}
+                    </p>
                   )}
+         
                   {fileUrl && (
-                    <a
-                      href={fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-600 hover:underline text-sm mt-3 inline-block font-medium"
-                    >
-                      View File
-                    </a>
+                    <>
+                     
+                      <button
+                        className="text-blue-700 underline text-sm"
+                        onClick={() => setShowPdf(fileUrl)}
+                        aria-label={`View ${title}`}
+                      >
+                        View
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
               <div className="flex items-center gap-6 mt-6 sm:mt-0 sm:ml-6">
                 <button
-                  onClick={() => openEditResource({ id: _id, title, description, fileUrl })}
+                  onClick={() =>
+                    openEditResource({ id: _id, title, description, fileUrl })
+                  }
                   className="text-indigo-700 hover:text-indigo-900 rounded-full p-4 hover:bg-indigo-100 transition shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
                   aria-label={`Edit resource ${title}`}
                 >
@@ -440,6 +463,9 @@ export default function ManageResourcesDashboard() {
           loading={deleting}
         />
       )}
+      {showPdf && (
+  <PdfViewerModal fileUrl={showPdf} onClose={() => setShowPdf(null)} />
+     )}
     </div>
   );
 }

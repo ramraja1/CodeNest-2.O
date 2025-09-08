@@ -3,7 +3,8 @@ import {
   joinBatchByCode,
   getMyBatches,
   getBatchById,
-  leaveBatch
+  leaveBatch,
+  getResourcesByBatchId
 } from "../controllers/batchController.js";
 import { authMiddleware } from "../middleware/auth.js";
 
@@ -20,5 +21,8 @@ router.get("/:id", authMiddleware, getBatchById);
 
 // POST /api/batches/leave
 router.post("/leave", authMiddleware, leaveBatch);
+
+// get resources
+router.get("/:batchId/resources", authMiddleware, getResourcesByBatchId);
 
 export default router;
