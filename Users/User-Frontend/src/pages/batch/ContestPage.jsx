@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
 import ProblemSolveView from "../ProblemSolveView";
@@ -13,18 +13,16 @@ export default function ContestPage() {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const initialProblemIdFromUrl = searchParams.get("problemId");
-  const [currentProblemId, setCurrentProblemId] = useState(initialProblemIdFromUrl);
 
+  const [currentProblemId, setCurrentProblemId] = useState(initialProblemIdFromUrl);
   const [contestInfo, setContestInfo] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [userSubmissions, setUserSubmissions] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
-
   const [loadingContest, setLoadingContest] = useState(true);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [loadingUserSubs, setLoadingUserSubs] = useState(true);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
-
   const [error, setError] = useState(null);
   const [confirmEndOpen, setConfirmEndOpen] = useState(false);
   const timerRef = useRef();
@@ -41,14 +39,14 @@ export default function ContestPage() {
     })
       .then(async (res) => {
         if (!res.ok) throw new Error("Failed to fetch contest info");
-        return await res.json();
+        return res.json();
       })
-      .then((data) => setContestInfo(data))
+      .then(setContestInfo)
       .catch((err) => setError(err.message))
       .finally(() => setLoadingContest(false));
   }, [batchId, contestId, server, token]);
 
-  // Fetch questions
+  // Fetch questions when contestInfo is available
   useEffect(() => {
     if (!contestInfo) return;
     setLoadingQuestions(true);
@@ -58,14 +56,14 @@ export default function ContestPage() {
     })
       .then(async (res) => {
         if (!res.ok) throw new Error("Failed to fetch questions");
-        return await res.json();
+        return res.json();
       })
       .then((data) => setQuestions(data.questions || []))
       .catch((err) => setError(err.message))
       .finally(() => setLoadingQuestions(false));
   }, [contestInfo, contestId, server, token]);
 
-  // Fetch user submissions
+  // Fetch user submissions (memoized)
   const fetchUserSubmissions = useCallback(() => {
     if (!userId || !contestId) return;
     setLoadingUserSubs(true);
@@ -75,7 +73,7 @@ export default function ContestPage() {
     })
       .then(async (res) => {
         if (!res.ok) throw new Error("Failed to fetch user submissions");
-        return await res.json();
+        return res.json();
       })
       .then((data) => setUserSubmissions(data.submissions || []))
       .catch(() => toast.error("Failed to load your submissions"))
@@ -86,21 +84,20 @@ export default function ContestPage() {
     fetchUserSubmissions();
   }, [fetchUserSubmissions]);
 
-  // Polling to refresh submissions and leaderboard every 30 seconds
+  // Polling: Refresh submissions and leaderboard every 30 seconds to keep UI updated
   useEffect(() => {
+    if (!contestId) return;
     const interval = setInterval(() => {
       fetchUserSubmissions();
-
-      if (!contestId) return;
       fetch(`${server}/api/contests/${contestId}/leaderboard?top=5`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then(async (res) => {
           if (!res.ok) throw new Error("Failed to fetch leaderboard");
-          return await res.json();
+          return res.json();
         })
         .then((data) => setLeaderboard(data.leaderboard || []))
-        .catch(() => {/* silent fail */});
+        .catch(() => { /* Silent fail to avoid UI disturbance */ });
     }, 30000);
 
     return () => clearInterval(interval);
@@ -116,21 +113,20 @@ export default function ContestPage() {
     })
       .then(async (res) => {
         if (!res.ok) throw new Error("Failed to fetch leaderboard");
-        return await res.json();
+        return res.json();
       })
       .then((data) => setLeaderboard(data.leaderboard || []))
       .catch(() => toast.error("Failed to load leaderboard"))
       .finally(() => setLoadingLeaderboard(false));
   }, [contestId, server, token]);
 
-  // Timer countdown
+  // Timer countdown logic
   useEffect(() => {
-    if (!contestInfo || !contestInfo.endTime) return;
+    if (!contestInfo?.endTime) return;
     const endTime = new Date(contestInfo.endTime);
 
     function updateTimer() {
       const diff = endTime - new Date();
-
       if (diff <= 0) {
         setTimeLeft("00:00:00");
         clearInterval(timerRef.current);
@@ -141,31 +137,35 @@ export default function ContestPage() {
       const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, "0");
       setTimeLeft(`${h}:${m}:${s}`);
     }
+
     updateTimer();
     timerRef.current = setInterval(updateTimer, 1000);
+
     return () => clearInterval(timerRef.current);
   }, [contestInfo]);
 
-  // Sync currentProblemId with URL
+  // Keep URL and currentProblemId in sync
   useEffect(() => {
     if (initialProblemIdFromUrl !== currentProblemId) {
       setCurrentProblemId(initialProblemIdFromUrl);
     }
   }, [initialProblemIdFromUrl, currentProblemId]);
 
-  // Memoize latest submission per problem
-  const latestSubmissionsMap = React.useMemo(() => {
+  // Memoize latest user submissions by problemId to avoid recalculations and re-renders
+  const latestSubmissionsMap = useMemo(() => {
     const map = new Map();
+
     userSubmissions.forEach(sub => {
       const existing = map.get(sub.problemId);
       if (!existing || new Date(sub.submittedAt) > new Date(existing.submittedAt)) {
         map.set(sub.problemId, sub);
       }
     });
+
     return map;
   }, [userSubmissions]);
 
-  // Get problem status based on latest submission
+  // Problem status based on latest submission: solved, attempted, or not attempted
   const getProblemStatus = useCallback(
     (problemId) => {
       const submission = latestSubmissionsMap.get(problemId);
@@ -175,25 +175,21 @@ export default function ContestPage() {
     [latestSubmissionsMap]
   );
 
-  // Update submissions state on new submission (called by ProblemSolveView)
+  // Update user submissions on new submission immediately
   const handleSubmissionUpdate = (newSubmission) => {
-    setUserSubmissions(prevSubs => {
+    setUserSubmissions((prevSubs) => {
+      // Remove older submission for the same problem before adding new one
       const filtered = prevSubs.filter(s => s.problemId !== newSubmission.problemId);
       return [...filtered, newSubmission];
     });
   };
 
-  // Total score calculation
-  const totalContestScore = userSubmissions.reduce((sum, s) => sum + (s.score || 0), 0);
-
-  // Handler to end contest
   const handleEndContest = async () => {
     try {
       const res = await fetch(`${server}/api/contests/${contestId}/end`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
-
       const data = await res.json();
 
       if (!res.ok) {
@@ -214,11 +210,9 @@ export default function ContestPage() {
     }
   };
 
-  // Loading/Error UI
+  // UI for loading, error, and problem view
   if (loadingContest) return <CenteredMessage message="Loading contest details..." />;
   if (error) return <CenteredMessage message={error} isError />;
-
-  // Problem solve view
   if (currentProblemId) {
     return (
       <ProblemSolveView
@@ -231,10 +225,12 @@ export default function ContestPage() {
         userSubmissions={userSubmissions}
         userId={userId}
         token={token}
-        onSubmissionUpdate={handleSubmissionUpdate} // This prop supports instant refresh on submit
+        onSubmissionUpdate={handleSubmissionUpdate}
       />
     );
   }
+
+  
 
   return (
     <main className="min-h-screen bg-gray-50 p-6 md:p-12 text-gray-900 font-sans select-none max-w-7xl mx-auto">

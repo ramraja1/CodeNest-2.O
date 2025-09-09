@@ -61,13 +61,22 @@ export default function EnhancedEditorOutputPanel({
   function parseTestCases(text) {
     if (!text) return [];
     // Split on lines with one or more dashes and optional newline
-    const cases = text.split(/-+\n*/).map((block) => block.trim()).filter(Boolean);
+    const cases = text
+      .split(/-+\n*/)
+      .map((block) => block.trim())
+      .filter(Boolean);
     return cases.map((block) => {
       return {
         raw: block,
-        input: /Input:\n([\s\S]*?)\nExpected Output:/i.exec(block)?.[1]?.trim() || "",
-        expected: /Expected Output:\n([\s\S]*?)\nYour Output:/i.exec(block)?.[1]?.trim() || "",
-        output: /Your Output:\n([\s\S]*?)\nVerdict:/i.exec(block)?.[1]?.trim() || "",
+        input:
+          /Input:\n([\s\S]*?)\nExpected Output:/i.exec(block)?.[1]?.trim() ||
+          "",
+        expected:
+          /Expected Output:\n([\s\S]*?)\nYour Output:/i
+            .exec(block)?.[1]
+            ?.trim() || "",
+        output:
+          /Your Output:\n([\s\S]*?)\nVerdict:/i.exec(block)?.[1]?.trim() || "",
         verdict: /Verdict:\s*(.+)/i.exec(block)?.[1]?.trim() || "",
         errorInfo: /Error Info:\n([\s\S]*)/i.exec(block)?.[1]?.trim() || "",
       };
@@ -128,54 +137,64 @@ export default function EnhancedEditorOutputPanel({
             <pre className="whitespace-pre-wrap text-red-400">{error}</pre>
           ) : testCases.length > 0 ? (
             <div className="space-y-2 max-h-full overflow-auto">
-              {testCases.map((tc, idx) => (
-                <div
-                  key={idx}
-                  className={`border rounded p-2 cursor-pointer select-none flex flex-col ${
-                    tc.verdict.toLowerCase() === "accepted"
-                      ? "border-green-500 bg-green-900"
-                      : "border-red-500 bg-red-900"
-                  }`}
-                  onClick={() =>
-                    setExpandedIndex(expandedIndex === idx ? null : idx)
-                  }
-                  title={`Click to ${expandedIndex === idx ? "collapse" : "expand"}`}
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">
-                      Test Case #{idx + 1}:{" "}
-                      <span
-                        className={`font-semibold ${
-                          tc.verdict.toLowerCase() === "accepted"
-                            ? "text-green-400"
-                            : "text-red-400"
-                        }`}
-                      >
-                        {tc.verdict}
+              {testCases
+                .filter(
+                  (tc) =>
+                    tc.input &&
+                    tc.input.trim() !== "" &&
+                    tc.expected &&
+                    tc.expected.trim() !== ""
+                )
+                .map((tc, idx) => (
+                  <div
+                    key={idx}
+                    className={`border rounded p-2 cursor-pointer select-none flex flex-col ${
+                      tc.verdict.toLowerCase() === "accepted"
+                        ? "border-green-500 bg-green-900"
+                        : "border-red-500 bg-red-900"
+                    }`}
+                    onClick={() =>
+                      setExpandedIndex(expandedIndex === idx ? null : idx)
+                    }
+                    title={`Click to ${
+                      expandedIndex === idx ? "collapse" : "expand"
+                    }`}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">
+                        Test Case #{idx + 1}:{" "}
+                        <span
+                          className={`font-semibold ${
+                            tc.verdict.toLowerCase() === "accepted"
+                              ? "text-green-400"
+                              : "text-red-400"
+                          }`}
+                        >
+                          {tc.verdict}
+                        </span>
                       </span>
-                    </span>
-                    <span className="text-xs opacity-70">
-                      {tc.errorInfo ? "Error" : ""}
-                    </span>
-                  </div>
-                  {expandedIndex === idx && (
-                    <div className="mt-2 text-xs whitespace-pre-wrap bg-gray-900 rounded p-2">
-                      <strong>Input:</strong>
-                      <pre>{tc.input}</pre>
-                      <strong>Expected Output:</strong>
-                      <pre>{tc.expected}</pre>
-                      <strong>Your Output:</strong>
-                      <pre>{tc.output}</pre>
-                      {tc.errorInfo && (
-                        <>
-                          <strong>Error Info:</strong>
-                          <pre className="text-red-400">{tc.errorInfo}</pre>
-                        </>
-                      )}
+                      <span className="text-xs opacity-70">
+                        {tc.errorInfo ? "Error" : ""}
+                      </span>
                     </div>
-                  )}
-                </div>
-              ))}
+                    {expandedIndex === idx && (
+                      <div className="mt-2 text-xs whitespace-pre-wrap bg-gray-900 rounded p-2">
+                        <strong>Input:</strong>
+                        <pre>{tc.input}</pre>
+                        <strong>Expected Output:</strong>
+                        <pre>{tc.expected}</pre>
+                        <strong>Your Output:</strong>
+                        <pre>{tc.output}</pre>
+                        {tc.errorInfo && (
+                          <>
+                            <strong>Error Info:</strong>
+                            <pre className="text-red-400">{tc.errorInfo}</pre>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
             </div>
           ) : (
             <pre className="whitespace-pre-wrap text-green-300">{output}</pre>
