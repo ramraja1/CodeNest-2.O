@@ -1,49 +1,42 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, NavLink, Outlet } from "react-router-dom";
-import { FaChevronLeft } from "react-icons/fa";
+import { FaUsers, FaTasks, FaChevronLeft } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 export default function BatchPage() {
   const { batchId } = useParams();
   const navigate = useNavigate();
-
   const [batch, setBatch] = useState(null);
   const [loading, setLoading] = useState(true);
+  const server = import.meta.env.VITE_SERVER;
+  const token = localStorage.getItem("token");
 
-  const server = useMemo(() => import.meta.env.VITE_SERVER, []);
-  const token = useMemo(() => localStorage.getItem("token"), []);
-
-  const fetchBatch = useCallback(async () => {
+  useEffect(() => {
     if (!token) {
       toast.error("User not logged in");
       navigate("/user-login");
       return;
     }
+    fetchBatch();
+  }, []);
 
-    setLoading(true);
+  const fetchBatch = async () => {
     try {
       const res = await fetch(`${server}/api/batches/${batchId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (res.ok) setBatch(data);
-      else toast.error(data.message || "Failed to load batch");
+      if (res.ok) {
+        setBatch(data);
+      } else {
+        toast.error(data.message || "Failed to load batch");
+      }
     } catch {
       toast.error("Error fetching batch details");
     } finally {
       setLoading(false);
     }
-  }, [batchId, navigate, server, token]);
-
-  useEffect(() => {
-    fetchBatch();
-  }, [fetchBatch]);
-
-  const backToDashboard = useCallback(() => {
-    navigate("/dashboard");
-  }, [navigate]);
-
-  const outletContext = useMemo(() => ({ batch }), [batch]);
+  };
 
   if (loading) {
     return (
@@ -63,16 +56,15 @@ export default function BatchPage() {
 
   return (
     <div className="flex bg-gray-50 min-h-screen">
-      {/* Sidebar */}
+      {/* Sidebar (simpler for batch) */}
       <div className="hidden md:block bg-gray-900 text-white w-64 p-6">
         <h1 className="text-xl font-bold mb-8">Batch</h1>
         <button
-          onClick={backToDashboard}
+          onClick={() => navigate("/dashboard")}
           className="flex items-center gap-2 text-sm text-gray-300 hover:text-white mb-6"
         >
           <FaChevronLeft /> Back to Dashboard
         </button>
-
         <nav className="space-y-3 text-sm">
           <NavLink
             to="overview"
@@ -124,7 +116,6 @@ export default function BatchPage() {
           </NavLink>
         </nav>
       </div>
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Topbar */}
@@ -134,15 +125,13 @@ export default function BatchPage() {
             {batch.students?.length || 0} students
           </div>
         </header>
-
         {/* Banner / Info */}
         <div className="bg-emerald-100 border-l-4 border-emerald-600 p-4 m-4 rounded">
           <p className="text-gray-800">{batch.description || "No description available."}</p>
         </div>
-
         {/* Tab Contents */}
         <main className="flex-1 p-6">
-          <Outlet context={outletContext} />
+          <Outlet context={{ batch }} />
         </main>
       </div>
     </div>
