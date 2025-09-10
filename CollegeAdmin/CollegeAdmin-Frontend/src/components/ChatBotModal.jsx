@@ -39,6 +39,7 @@ const generateQuestions = async (msg) => {
     }
 
     const data = await response.json();
+    addSuccess();
     return data;
   } catch (error) {
     throw error;
