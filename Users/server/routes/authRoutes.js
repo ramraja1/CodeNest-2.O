@@ -2,7 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
-import {registerStudent,loginStudent} from "../controllers/UserAuth.js"
+import {registerStudent,loginStudent,googleLoginStudent} from "../controllers/UserAuth.js"
 const router = express.Router();
 
 /**
@@ -11,6 +11,7 @@ const router = express.Router();
  * @access Public
  */
 router.post('/login', loginStudent);
+router.post('/google-login', googleLoginStudent);
 
 router.post('/register',registerStudent)
 

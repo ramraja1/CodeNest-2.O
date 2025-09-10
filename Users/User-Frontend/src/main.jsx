@@ -9,12 +9,11 @@ import { Provider } from 'react-redux';
 import { store } from './store/store';
 
 
-
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
     <Provider store={store}>
-    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <UserProvider>
         <App />
       </UserProvider>

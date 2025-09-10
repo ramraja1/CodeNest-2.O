@@ -1,6 +1,79 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
+import { OAuth2Client } from 'google-auth-library';
+
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+export async function googleLoginStudent(req, res) {
+  const { token } = req.body;
+
+  try {
+    // Verify the token and get payload
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, sub: googleId, picture } = payload;
+
+    // Normalize email
+    const emailLower = email.toLowerCase();
+
+    // Find or create user
+    let user = await User.findOne({ email: emailLower });
+
+    if (!user) {
+      user = new User({
+        name,
+        email: emailLower,
+        googleId,
+        password: null,
+        role: "student",       // Default role, align with your registers
+        batches: [],
+        collegeId: null,
+        avatarUrl: picture || "",   // Save Google profile image
+      });
+      await user.save();
+    } else if (!user.avatarUrl && picture) {
+      // Optionally update avatarUrl if missing
+      user.avatarUrl = picture;
+      await user.save();
+    }
+
+    // Generate token with full JWT info like normal login
+    const jwtToken = jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+        collegeId: user.collegeId,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    // Respond with detailed info like other auth methods
+    return res.json({
+      token: jwtToken,
+      message: "Google login successful",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        batches: user.batches,
+        collegeId: user.collegeId,
+        avatarUrl: user.avatarUrl,
+      },
+    });
+  } catch (error) {
+    console.error("Google login error:", error);
+    res.status(401).json({ message: "Invalid Google token or server error" });
+  }
+}
+
+
 
 // Helper to generate JWT token
 const generateToken = (user) => {

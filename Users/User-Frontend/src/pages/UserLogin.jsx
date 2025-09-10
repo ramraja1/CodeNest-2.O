@@ -134,6 +134,13 @@ export default function UserAuthPage() {
                 {regLoading ? "Registering..." : "Create Account"}
               </button>
             </form>
+              {/* Google Login Button */}
+            <div className="mt-4 flex justify-center">
+              <GoogleLogin
+                onSuccess={onGoogleSuccess}
+                onError={onGoogleFailure}
+              />
+            </div>
             <button
               className="mt-6 text-blue-600 hover:underline"
               onClick={() => setShowRegister(false)}

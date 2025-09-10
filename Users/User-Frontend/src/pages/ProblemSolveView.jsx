@@ -22,6 +22,12 @@ export default function ProblemSolveView({
   const [activeProblemId, setActiveProblemId] = useState(
     initialProblemId || (questions[0] && questions[0]._id)
   );
+  useEffect(() => {
+  if (initialProblemId && initialProblemId !== activeProblemId) {
+    setActiveProblemId(initialProblemId);
+  }
+}, [initialProblemId]);
+
   const [submitStatusOpen, setSubmitStatusOpen] = useState(false);
   const [activeProblem, setActiveProblem] = useState(null);
   const [code, setCode] = useState({});
@@ -37,6 +43,7 @@ export default function ProblemSolveView({
 
   const { userId, token } = useContext(UserContext);
   const server = import.meta.env.VITE_SERVER;
+  
 
   // Language mapping for API/Judge compatibility
   const languageMap = useMemo(() => ({
@@ -122,33 +129,33 @@ export default function ProblemSolveView({
   );
 
   // Fetch last saved submission for active problem on load/change
-  useEffect(() => {
-    async function fetchLastSubmission() {
-      if (!activeProblem || !userId) return;
-      try {
-        const res = await fetch(
-          `${server}/api/submissions?userId=${userId}&problemId=${activeProblem._id}&contestId=${activeProblem.contestId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (res.ok) {
-          const data = await res.json();
-          if (data.submission) {
-            setCode((old) => ({
-              ...old,
-              [activeProblem._id]: data.submission.sourceCode,
-            }));
-          }
-        }
-      } catch (e) {
-        console.error("Failed to fetch last submission:", e);
-      }
-    }
-    fetchLastSubmission();
-  }, [activeProblem, userId, token, server]);
+  // useEffect(() => {
+  //   async function fetchLastSubmission() {
+  //     if (!activeProblem || !userId) return;
+  //     try {
+  //       const res = await fetch(
+  //         `${server}/api/submissions?userId=${userId}&problemId=${activeProblem._id}&contestId=${activeProblem.contestId}`,
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${token}`,
+  //           },
+  //         }
+  //       );
+  //       if (res.ok) {
+  //         const data = await res.json();
+  //         if (data.submission) {
+  //           setCode((old) => ({
+  //             ...old,
+  //             [activeProblem._id]: data.submission.sourceCode,
+  //           }));
+  //         }
+  //       }
+  //     } catch (e) {
+        
+  //     }
+  //   }
+  //   fetchLastSubmission();
+  // }, [activeProblem, userId, token, server]);
 
   // Execution function: runs the code against all test cases, sets output & verdicts
   const handleRun = useCallback(async () => {
@@ -309,10 +316,10 @@ export default function ProblemSolveView({
       });
       if (!res.ok) {
         const errData = await res.json();
-        console.error("Failed to save submission:", errData.message);
+        
       }
     } catch (error) {
-      console.error("Error saving submission:", error);
+   
     }
 
     setIsRunning(false);
