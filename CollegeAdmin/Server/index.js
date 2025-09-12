@@ -38,6 +38,8 @@ app.use('/api/auth/college', authRoutes);
 
 // College module (register/approve/login College Admin)
 app.use('/api/college', collegeRoutes);
+
+
 //batches
 app.use("/api/batches", batchesRoutes );
 

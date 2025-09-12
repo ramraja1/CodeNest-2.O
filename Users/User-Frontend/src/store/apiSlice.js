@@ -8,7 +8,7 @@ export const apiSlice = createApi({
     baseUrl: import.meta.env.VITE_SERVER,
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('token');
-      console.log(token);
+      
       if (token) headers.set('Authorization', `Bearer ${token}`);
       return headers;
     }

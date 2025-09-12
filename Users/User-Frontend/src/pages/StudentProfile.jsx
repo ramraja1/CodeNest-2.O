@@ -111,7 +111,7 @@ export default function MyProfile() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-lg font-semibold">
-        Loading user profile...
+        Loading user profile if it took time simply reload page...
       </div>
     );
   }

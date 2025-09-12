@@ -6,28 +6,70 @@ import {
   FaUsers,
   FaTasks,
   FaSignOutAlt,
-  FaPlusCircle,
   FaUsersCog,
 } from "react-icons/fa";
 
 import CollegeAdminDashboardSkeleton from "../components/skeleton/CollegeAdminDashboardSkeleton";
 import RobotAssistant from "../components/RobotAssistant";
 
+function RecentActivity() {
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("token");
+  const server = import.meta.env.VITE_SERVER;
 
+  useEffect(() => {
+    async function fetchActivities() {
+      try {
+        const res = await fetch(
+          `${server}/api/college/activities?limit=10`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const data = await res.json();
+        if (res.ok) setActivities(data);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchActivities();
+  }, [token, server]);
 
+  if (loading)
+    return (
+      <section className="bg-white p-6 rounded-2xl shadow-sm border">
+        <h3 className="text-lg font-semibold mb-4">📢 Recent Activity</h3>
+        <div className="text-slate-400 animate-pulse">Loading activity...</div>
+      </section>
+    );
+
+  return (
+    <section className="bg-white p-6 rounded-2xl shadow-sm border">
+      <h3 className="text-lg font-semibold mb-4">📢 Recent Activity</h3>
+      <ul className="space-y-3 text-slate-600">
+        {activities.length ? (
+          activities.map((a, i) => (
+            <li key={a._id || i}>{a.message}</li>
+          ))
+        ) : (
+          <li className="text-slate-400 italic">No recent activity yet.</li>
+        )}
+      </ul>
+    </section>
+  );
+}
 
 export default function CollegeAdminDashboard() {
-  const [stats, setStats] = useState({ contests: 0, students: 0 });
+  const [stats, setStats] = useState({ batches: 0, students: 0, performance: "" });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  const server = import.meta.env.VITE_SERVER;
 
-  const server=`${import.meta.env.VITE_SERVER}`;
   useEffect(() => {
     async function fetchData() {
       try {
         const res = await fetch(
-         `${server}/api/collegeadmin/stats`,
+          `${server}/api/college/stats`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const data = await res.json();
@@ -36,14 +78,12 @@ export default function CollegeAdminDashboard() {
         } else {
           toast.error("Failed to load stats");
         }
-      } catch {
-        
       } finally {
         setLoading(false);
       }
     }
     fetchData();
-  }, [token]);
+  }, [token, server]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -52,23 +92,12 @@ export default function CollegeAdminDashboard() {
     navigate("/college-login");
   };
 
-  if (loading)
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-xl text-slate-500 animate-pulse">
-          Loading dashboard...
-        </div>
-      </div>
-    );
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-slate-800">
-            🎓 College Admin Dashboard
-          </h2>
+          <h2 className="text-2xl font-bold text-slate-800">🎓 College Admin Dashboard</h2>
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
@@ -84,8 +113,8 @@ export default function CollegeAdminDashboard() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard
             icon={<FaTasks />}
-            label="Total Contests"
-            value={stats.contests}
+            label="Total Batches"
+            value={stats.batches}
             color="blue"
           />
           <StatCard
@@ -97,44 +126,33 @@ export default function CollegeAdminDashboard() {
           <StatCard
             icon={<FaChartLine />}
             label="Performance"
-            value="↑ 14%"
+            value={stats.performance}
             color="purple"
           />
         </div>
 
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 gap-6">
-            <ActionCard
+          <ActionCard
             title="Manage Batches"
             description="Create and manage batches for your college (e.g., CSE 2025, MCA 2026)."
             icon={<FaUsersCog />}
             buttonLabel="Manage Batches"
             onClick={() => navigate("/manage-batches")}
           />
-     
-                  <ActionCard
-              title="Student Progress"
-              description="Monitor performance, submissions, and leaderboard."
-              icon={<FaUsers />}
-              buttonLabel="View Progress"
-              onClick={() => navigate("/student-progress")}
-            />
+          <ActionCard
+            title="Student Progress"
+            description="Monitor performance, submissions, and leaderboard."
+            icon={<FaUsers />}
+            buttonLabel="View Progress"
+            onClick={() => navigate("/student-progress")}
+          />
+        </div>
 
-                    
-
-                    </div>
-
-        {/* Future Section: Recent Activity */}
-        <section className="bg-white p-6 rounded-2xl shadow-sm border">
-          <h3 className="text-lg font-semibold mb-4">📢 Recent Activity</h3>
-          <ul className="space-y-3 text-slate-600">
-            <li>✅ Contest “DSA Mock Test” completed successfully.</li>
-            <li>👥 10 new students joined your college.</li>
-            <li>🏆 Leaderboard updated for "Mini Hackathon".</li>
-          </ul>
-        </section>
+        {/* Dynamic Recent Activity */}
+        <RecentActivity />
       </main>
-           { loading && <CollegeAdminDashboardSkeleton />}
+      {loading && <CollegeAdminDashboardSkeleton />}
     </div>
   );
 }
@@ -142,7 +160,6 @@ export default function CollegeAdminDashboard() {
 /* ------------------------
    Reusable Components 
 ------------------------ */
-
 function StatCard({ icon, label, value, color }) {
   const colors = {
     blue: "bg-blue-100 text-blue-600",
@@ -176,7 +193,7 @@ function ActionCard({ title, description, icon, buttonLabel, onClick }) {
       >
         {buttonLabel}
       </button>
- <RobotAssistant onClick={() => setShowBot(true)} size={80} />
+      <RobotAssistant onClick={() => setShowBot(true)} size={80} />
     </div>
   );
 }
