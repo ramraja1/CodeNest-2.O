@@ -14,7 +14,13 @@ dotenv.config();
 connectDB();
 
 const app = express();
-app.use(cors());
+
+const corsOptions = {
+  origin: 'http://localhost:5173',// frontend URL exact origin
+  credentials: true, // allow cookies/auth headers
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.get("/",(req,res)=>{
   res.send("i am alive");

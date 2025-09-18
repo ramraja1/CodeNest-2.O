@@ -20,10 +20,13 @@ import {
 import classNames from "classnames";
 import { Tooltip } from "react-tooltip";
 import { toast } from "react-toastify";
-
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetMeQuery ,useGetMyContestsDetailQuery} from "../store/apiSlice";
 import { setUser, setLoading, setError } from "../store/userSlice";
+
+import ChangePassword from "../components/User/ChangePassword";
+
   const token = localStorage.getItem("token");
 
 const server = import.meta.env.VITE_SERVER;
@@ -56,6 +59,7 @@ export default function MyProfile() {
     skip: !token,
   });
 
+const  navigate=useNavigate();
   const user = useSelector((state) => state.user.profile);
   const loading = useSelector((state) => state.user.loading);
   const loadError = useSelector((state) => state.user.error);
@@ -63,6 +67,10 @@ export default function MyProfile() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [changePasswordToggle,setChangePasswordToggle] = useState(false);
+  const handleChangePassword = ()=> {
+     setChangePasswordToggle(!changePasswordToggle);
+  }
 
  useEffect(() => {
   if (isLoading) {
@@ -91,7 +99,7 @@ export default function MyProfile() {
     const file = e.target.files?.[0];
     if (file) {
       dispatch(setUser({ ...user, avatarUrl: URL.createObjectURL(file) }));
-      toast("Avatar preview updated 👤");
+      toast("Avatar preview updated");
     }
   }
 
@@ -104,14 +112,20 @@ export default function MyProfile() {
   }
 
   const goBackHome = () => {
-    toast("Returning back home 🏠");
-    window.location.href = "/";
+    
+    navigate("/student");
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-lg font-semibold">
         Loading user profile if it took time simply reload page...
+         <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700"
+        >
+          Reload
+        </button>
       </div>
     );
   }
@@ -145,13 +159,16 @@ export default function MyProfile() {
           <ProfileHeader user={user} onAvatarChange={onAvatarChange} onEditClick={() => setEditModalOpen(true)} />
           <AchievementsSection achievements={user?.achievements || []} />
           <ContestPerformance onExportCSV={exportCSV} />
-          <SecurityPreferences />
+          <SecurityPreferences changePasswordModel={handleChangePassword}/>
         </main>
       </div>
 
       {editModalOpen && (
         <EditProfileModal user={user} setUser={(updatedUser) => dispatch(setUser(updatedUser))} onClose={() => setEditModalOpen(false)} saving={saving} setSaving={setSaving} />
       )}
+     {changePasswordToggle && (
+  <ChangePassword onClose={() => setChangePasswordToggle(false)} />
+)}
 
       <Tooltip id="tooltip" />
     </div>
@@ -483,13 +500,14 @@ function ContestPerformance() {
 
 
 // ---------------- Security & Preferences ---------------------
-function SecurityPreferences() {
+function SecurityPreferences({changePasswordModel}) {
+ 
   return (
     <section className="bg-white rounded-3xl shadow-xl p-8 space-y-4">
       <h3 className="text-2xl font-bold mb-4 flex items-center gap-3">
         <FaLock className="text-slate-600" /> Security & Preferences
       </h3>
-      <button className="block w-full px-4 py-3 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
+      <button onClick={changePasswordModel} className="block w-full px-4 py-3 rounded bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
         Change Password
       </button>
       <button className="block w-full px-4 py-3 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 transition">

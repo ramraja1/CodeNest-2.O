@@ -22,7 +22,7 @@ import BatchMembers from "./pages/batch/BatchMembers";
 import ContestPage from "./pages/batch/ContestPage";
 import WarmupScreen from "./pages/WarmupScreen";
 import MyProfile from "./pages/StudentProfile";
-
+import ResetPassword from "./components/User/ResetPassword";
 /* ----------------------
    TOKEN HELPERS
 ---------------------- */
@@ -114,6 +114,8 @@ function App() {
             </PublicRoute>
           }
         />
+
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* Student dashboard */}
         <Route

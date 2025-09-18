@@ -3,6 +3,9 @@ import {
   getUserById,
   updateUserById,
   deleteUserById,
+  changePassword,
+  forgotPassword,
+  resetPassword
 } from "../controllers/userController.js";
 import { upload, uploadToCloudinary } from "../middleware/uploadMiddleware.js";
 import { authMiddleware } from "../middleware/auth.js"; // optional auth middleware
@@ -26,4 +29,7 @@ router.post(
   }
 );
 
+router.post("/change-password",authMiddleware,changePassword);
+router.post("/forgot-password",forgotPassword);
+router.post("/reset-password",resetPassword);
 export default router;

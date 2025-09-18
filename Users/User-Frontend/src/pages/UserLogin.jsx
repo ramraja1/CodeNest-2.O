@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import axios from "axios";
 import { GoogleLogin } from "@react-oauth/google";
 import dotenv from "dotenv";
+import ForgotPassword from "../components/User/ForgotPassword";
 
 export default function UserAuthPage() {
   const [showRegister, setShowRegister] = useState(true);
@@ -68,6 +69,8 @@ export default function UserAuthPage() {
     }
   };
 
+    const [forgotPasswordToggle,setForgotPasswordToggle]=useState(false)
+ 
   // Google Login success handler
   const onGoogleSuccess = async (credentialResponse) => {
     try {
@@ -186,12 +189,26 @@ export default function UserAuthPage() {
               </button>
             </form>
             {/* Google Login Button */}
-            <div className="mt-4 flex justify-center">
-              <GoogleLogin
-                onSuccess={onGoogleSuccess}
-                onError={onGoogleFailure}
-              />
-            </div>
+           <div className="mt-6 max-w-md mx-auto flex items-center justify-between gap-4">
+  <div className="flex-1">
+    <GoogleLogin
+      onSuccess={onGoogleSuccess}
+      onError={onGoogleFailure}
+      className="w-full max-w-sm"
+    />
+  </div>
+
+  <button
+    onClick={()=>{
+      setForgotPasswordToggle(!forgotPasswordToggle);
+    }}
+    className="text-sm text-blue-600 hover:underline whitespace-nowrap"
+    type="button"
+  >
+    Forgot Password?
+  </button>
+</div>
+
             <button
               className="mt-6 text-green-600 hover:underline"
               onClick={() => setShowRegister(true)}
@@ -218,6 +235,12 @@ export default function UserAuthPage() {
           draggable={false}
         />
       </div>
+    {forgotPasswordToggle && (
+  <ForgotPassword 
+    onClose={() => setForgotPasswordToggle(false)} 
+  />
+)}
+
     </div>
   );
 }

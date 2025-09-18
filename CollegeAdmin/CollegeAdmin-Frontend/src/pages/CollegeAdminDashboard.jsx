@@ -91,9 +91,12 @@ export default function CollegeAdminDashboard() {
     toast.success("Logged out");
     navigate("/college-login");
   };
+  if (loading) {
+  return <CollegeAdminDashboardSkeleton />;
+}
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+  <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -152,8 +155,9 @@ export default function CollegeAdminDashboard() {
         {/* Dynamic Recent Activity */}
         <RecentActivity />
       </main>
-      {loading && <CollegeAdminDashboardSkeleton />}
+     
     </div>
+ 
   );
 }
 

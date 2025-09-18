@@ -10,6 +10,9 @@ const userSchema = new mongoose.Schema({
       return !this.googleId; // required only if googleId is not present
     }
   }, // hashed
+
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
   googleId: { type: String }, // add this field to store Google user ID
   role: { 
     type: String, 
