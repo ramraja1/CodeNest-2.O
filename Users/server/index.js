@@ -2,6 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
+import './jobs/potdCron.js';
+import potdRoutes from './routes/potdRoutes.js';
 
 import authRoutes from "./routes/authRoutes.js";
 import batchRoutes from "./routes/batchRoutes.js";
@@ -37,6 +39,10 @@ app.use("/api/users", userRoutes);
 
 app.use("/api/questions", questionRoutes);
 app.use("/api/submissions",submissionRoutes)
+
+
+// features
+app.use('/api/potd', potdRoutes);
 
 app.use("/api/judge", judgeRoutes);
 const PORT = process.env.PORT || 8000;

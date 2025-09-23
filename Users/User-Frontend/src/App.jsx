@@ -23,6 +23,7 @@ import ContestPage from "./pages/batch/ContestPage";
 import WarmupScreen from "./pages/WarmupScreen";
 import MyProfile from "./pages/StudentProfile";
 import ResetPassword from "./components/User/ResetPassword";
+import PracticePotdPage from "./pages/PracticePotdPage";
 /* ----------------------
    TOKEN HELPERS
 ---------------------- */
@@ -123,6 +124,14 @@ function App() {
           element={
             <PrivateRoute>
               <StudentDashboard />
+            </PrivateRoute>
+          }
+        />
+         <Route
+          path="/practice/potd"
+          element={
+            <PrivateRoute>
+              <PracticePotdPage />
             </PrivateRoute>
           }
         />
