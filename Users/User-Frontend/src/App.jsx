@@ -24,6 +24,13 @@ import WarmupScreen from "./pages/WarmupScreen";
 import MyProfile from "./pages/StudentProfile";
 import ResetPassword from "./components/User/ResetPassword";
 import PracticePotdPage from "./pages/PracticePotdPage";
+import AboutSection from "./pages/About";
+import SdePracticePage from "./pages/SDE";
+import SdeDsaTopicWisePage from "./pages/SdeDsaTopicWisePage";
+import MonthlyContestPage from "./pages/MonthlyContestPage";
+import WeeklyContestPage from "./pages/WeeklyContestPage";
+import ImportantSheetsPage from "./pages/ImportantSheetsPage";
+import RoadmapPage from "./pages/RoadmapPage";
 /* ----------------------
    TOKEN HELPERS
 ---------------------- */
@@ -127,11 +134,72 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/about"
+          element={
+            
+              <AboutSection />
+       
+          }
+        />
+        
          <Route
           path="/practice/potd"
           element={
             <PrivateRoute>
               <PracticePotdPage />
+            </PrivateRoute>
+          }
+        />
+
+         <Route
+          path="/practice/sde"
+          element={
+            <PrivateRoute>
+              <SdePracticePage />
+            </PrivateRoute>
+          }
+        />
+
+         <Route
+          path="/practice/topic-wise-dsa"
+          element={
+            <PrivateRoute>
+              <SdeDsaTopicWisePage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/contest/monthly"
+          element={
+            <PrivateRoute>
+              <MonthlyContestPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/contest/weekly"
+          element={
+            <PrivateRoute>
+              <WeeklyContestPage />
+            </PrivateRoute>
+          }
+        />
+
+         <Route
+          path="/resources/sheets"
+          element={
+            <PrivateRoute>
+              <ImportantSheetsPage />
+            </PrivateRoute>
+          }
+        />
+
+          <Route
+          path="/resources/roadmaps"
+          element={
+            <PrivateRoute>
+              <RoadmapPage />
             </PrivateRoute>
           }
         />

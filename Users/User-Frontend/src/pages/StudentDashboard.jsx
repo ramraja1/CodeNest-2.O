@@ -108,8 +108,8 @@ export default function StudentDashboard() {
             setOpen={setPracticeOpen}
             items={[
               { label: "Problem of the Day", onClick: () => navigate("/practice/potd") },
-              { label: "SDE Sheet", onClick: () => navigate("/practice/sde-sheet") },
-              { label: "Topic-wise DSA", onClick: () => navigate("/practice/topic-wise-dsa") }
+              { label: "SDE Sheet", onClick: () => navigate("/practice/sde") },
+              // { label: "Topic-wise DSA", onClick: () => navigate("/practice/topic-wise-dsa") }
             ]}
           />
           {/* Contest Dropdown */}

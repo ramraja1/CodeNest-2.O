@@ -11,7 +11,7 @@ const collegeSchema = new mongoose.Schema({
   contactPhone: { type: String },
 
   // Optional: store a join code students can use when signing up
-  joinCode: { type: String, unique: true },
+  // joinCode: { type: String, unique: true },
 
   // Status for super-admin approval
   status: {

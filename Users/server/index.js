@@ -12,6 +12,7 @@ import questionRoutes from "./routes/questionRoutes.js"
 import judgeRoutes from "./routes/judgeRoutes.js"
 import submissionRoutes from "./routes/submissionRoutes.js"
 import userRoutes from "./routes/userRoutes.js"
+import chatRoutes from "./routes/chatRoutes.js"
 dotenv.config();
 connectDB();
 
@@ -40,6 +41,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/questions", questionRoutes);
 app.use("/api/submissions",submissionRoutes)
 
+// Chatbot feature
+app.use("/api/chat", chatRoutes);
 
 // features
 app.use('/api/potd', potdRoutes);

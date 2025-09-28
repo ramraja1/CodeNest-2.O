@@ -1,6 +1,6 @@
 import { useState } from "react";
 import student3d from "../assets/login.png";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { ArrowLeft } from "lucide-react";
 import axios from "axios";
@@ -9,7 +9,13 @@ import dotenv from "dotenv";
 import ForgotPassword from "../components/User/ForgotPassword";
 
 export default function UserAuthPage() {
-  const [showRegister, setShowRegister] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // check state for "login" mode
+  const fromSignIn = location.state?.mode === "login";
+
+  const [showRegister, setShowRegister] = useState(!fromSignIn);
 
   // Login state
   const [loginEmail, setLoginEmail] = useState("");
@@ -22,7 +28,6 @@ export default function UserAuthPage() {
   const [regPassword, setRegPassword] = useState("");
   const [regLoading, setRegLoading] = useState(false);
 
-  const navigate = useNavigate();
   // sever
   const server = `${import.meta.env.VITE_SERVER}`;
   // Handle Login

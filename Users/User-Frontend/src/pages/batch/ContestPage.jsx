@@ -300,12 +300,12 @@ export default function ContestPage() {
             <section className="bg-white p-6 rounded-lg border border-gray-200">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="font-bold text-lg text-gray-800">Leaderboard Preview</h2>
-                <button
+                {/* <button
                   onClick={() => navigate(`/student/batch/${batchId}/contests/${contestId}/leaderboard`)}
                   className="text-indigo-600 hover:underline text-sm font-medium"
                 >
                   View Full →
-                </button>
+                </button> */}
               </div>
               {loadingLeaderboard ? (
                 <CenteredMessage message="Loading leaderboard..." />

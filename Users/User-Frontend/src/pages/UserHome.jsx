@@ -11,9 +11,27 @@ function UserLanding() {
   };
 
   const menuItems = [
-    { name: "Explore", active: true, onClick: () => {navigate("/user-login");} },
-    { name: "Product", active: false, onClick: () => {navigate("/user-login");} },
-    { name: "Docs", active: false, onClick: () => {navigate("/user-login");} },
+    {
+      name: "Explore",
+      active: true,
+      onClick: () => {
+        navigate("/");
+      },
+    },
+    {
+      name: "Product",
+      active: false,
+      onClick: () => {
+        navigate("");
+      },
+    },
+    {
+      name: "Sign in",
+      active: false,
+      onClick: () => {
+        navigate("/user-login", { state: { mode: "login" } });
+      },
+    },
     // Removed 'Sign in'
   ];
 
@@ -37,16 +55,16 @@ function UserLanding() {
 
           {/* Desktop Menu */}
           <ul className="hidden md:flex items-center gap-8 text-sm text-gray-200">
-            <li>
-           <button
-  className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-semibold shadow-sm border border-violet-400 hover:from-violet-600 hover:to-indigo-600 transition-all duration-200"
-  onClick={() => window.open('https://codenest-college.vercel.app/', '_blank')}
->
-  Admin
-</button>
-
-
-            </li>
+            {/* <li>
+              <button
+                className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-semibold shadow-sm border border-violet-400 hover:from-violet-600 hover:to-indigo-600 transition-all duration-200"
+                onClick={() =>
+                  window.open("https://codenest-college.vercel.app/", "_blank")
+                }
+              >
+                Admin
+              </button>
+            </li> */}
 
             {menuItems.map(({ name, active, onClick }) => (
               <li
@@ -155,10 +173,13 @@ function UserLanding() {
               className="text-white order-1 md:order-2 z-20"
             >
               <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight">
-                Level Up Your Coding. <br className="hidden sm:block" /> Compete and Win!
+                Level Up Your Coding. <br className="hidden sm:block" /> Compete
+                and Win!
               </h1>
               <p className="mt-5 text-gray-200 text-lg max-w-xl">
-                Join contests,  track your progress, and climb the leaderboards—all with CodeNest, your campus’s hub for coding excellence.
+                Join contests, track your progress, and climb the
+                leaderboards—all with CodeNest, your campus’s hub for coding
+                excellence.
               </p>
               <div className="mt-8 flex items-center gap-4 flex-wrap">
                 <a
@@ -239,10 +260,7 @@ function UserLanding() {
               "Compete Ranking",
               "Take part in live contests and see where you stand among your peers.",
             ],
-            [
-              "Earn Badges",
-              "Track performance, Unlock badges for milestones.",
-            ],
+            ["Earn Badges", "Track performance, Unlock badges for milestones."],
           ].map(([t, d]) => (
             <div
               key={t}

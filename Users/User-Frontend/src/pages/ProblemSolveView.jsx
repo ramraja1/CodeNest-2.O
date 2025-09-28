@@ -1,16 +1,21 @@
-import React, { useState, useEffect, useContext, useMemo, useCallback } from "react";
 import {
-  SunIcon,
-  MoonIcon,
   ArrowUturnLeftIcon,
   Bars3BottomLeftIcon,
+  MoonIcon,
+  SunIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import EnhancedEditorOutputPanel from "../components/EditorPannel";
-import ProblemPanel from "./ProblemPanel";
 import SubmitStatus from "../components/SubmissionStatusCards";
 import { UserContext } from "../context/UserContext.jsx";
-import classNames from "classnames";
+import ProblemPanel from "./ProblemPanel";
 
 export default function ProblemSolveView({
   questions = [],
@@ -23,10 +28,10 @@ export default function ProblemSolveView({
     initialProblemId || (questions[0] && questions[0]._id)
   );
   useEffect(() => {
-  if (initialProblemId && initialProblemId !== activeProblemId) {
-    setActiveProblemId(initialProblemId);
-  }
-}, [initialProblemId]);
+    if (initialProblemId && initialProblemId !== activeProblemId) {
+      setActiveProblemId(initialProblemId);
+    }
+  }, [initialProblemId]);
 
   const [submitStatusOpen, setSubmitStatusOpen] = useState(false);
   const [activeProblem, setActiveProblem] = useState(null);
@@ -43,14 +48,16 @@ export default function ProblemSolveView({
 
   const { userId, token } = useContext(UserContext);
   const server = import.meta.env.VITE_SERVER;
-  
 
   // Language mapping for API/Judge compatibility
-  const languageMap = useMemo(() => ({
-    cpp: "cpp",
-    python: "python3",
-    java: "java",
-  }), []);
+  const languageMap = useMemo(
+    () => ({
+      cpp: "cpp",
+      python: "python3",
+      java: "java",
+    }),
+    []
+  );
 
   // Effect: Set activeProblem whenever activeProblemId or questions list changes
   useEffect(() => {
@@ -82,7 +89,7 @@ export default function ProblemSolveView({
   function getDefaultStarterCode(lang) {
     switch (lang) {
       case "cpp":
-        return `#include <iostream>\nusing namespace std;\nint main() {\n  return 0;\n}`;
+        return `#include <iostream>\nusing namespace std;\n\nint main() {\n\n return 0;\n}`;
       case "python":
         return `def main():\n    pass`;
       case "java":
@@ -151,7 +158,7 @@ export default function ProblemSolveView({
   //         }
   //       }
   //     } catch (e) {
-        
+
   //     }
   //   }
   //   fetchLastSubmission();
@@ -290,7 +297,9 @@ export default function ProblemSolveView({
     // Calculate score
     const passedTests = verdicts.filter((v) => v.verdict === "Accepted").length;
     const totalMarks = activeProblem?.marks || 0;
-    const marksEarned = Math.round((passedTests / verdicts.length) * totalMarks);
+    const marksEarned = Math.round(
+      (passedTests / verdicts.length) * totalMarks
+    );
     setScore(marksEarned);
 
     // Save submission to backend
@@ -316,25 +325,28 @@ export default function ProblemSolveView({
       });
       if (!res.ok) {
         const errData = await res.json();
-        
       }
-    } catch (error) {
-   
-    }
+    } catch (error) {}
 
     setIsRunning(false);
     setSubmitStatusOpen(true);
   }, [activeProblem, language, code, languageMap, server, token, userId]);
 
-  const modeClass = darkMode ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900";
+  const modeClass = darkMode
+    ? "bg-gray-900 text-white"
+    : "bg-gray-100 text-gray-900";
 
   // JSX Layout with accessibilty, keyboard handling, and performance in mind
   return (
-    <div className={`flex flex-col h-screen ${modeClass} transition-colors font-sans`}>
+    <div
+      className={`flex flex-col h-screen ${modeClass} transition-colors font-sans`}
+    >
       {/* Header */}
       <header
         className={`flex items-center justify-between p-4 border-b ${
-          darkMode ? "border-gray-700 bg-gray-900" : "border-gray-300 bg-gray-200"
+          darkMode
+            ? "border-gray-700 bg-gray-900"
+            : "border-gray-300 bg-gray-200"
         }`}
       >
         <div className="flex items-center gap-4">
@@ -375,11 +387,17 @@ export default function ProblemSolveView({
             <Bars3BottomLeftIcon className="h-5 w-5" />
           </button>
         </div>
+
       </header>
 
       {/* Problem List Sidebar */}
       {problemListOpen && (
-        <aside className="fixed inset-0 bg-opacity-50 z-50 flex" role="dialog" aria-modal="true" aria-label="Problem list">
+        <aside
+          className="fixed inset-0 bg-opacity-50 z-50 flex"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Problem list"
+        >
           <div
             className={`${
               darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-900"
@@ -401,7 +419,10 @@ export default function ProblemSolveView({
                 const status = getProblemStatus(q._id);
                 const baseClasses =
                   "cursor-pointer px-4 py-3 border-b border-gray-300 hover:bg-blue-100 hover:text-blue-900 transition duration-200 ease-in-out rounded-md";
-                const activeClasses = q._id === activeProblemId ? "bg-blue-200 text-blue-900 font-semibold shadow-md" : "";
+                const activeClasses =
+                  q._id === activeProblemId
+                    ? "bg-blue-200 text-blue-900 font-semibold shadow-md"
+                    : "";
                 const statusClasses =
                   status === "solved"
                     ? "bg-green-100 text-green-800 font-semibold"
@@ -438,7 +459,9 @@ export default function ProblemSolveView({
                     aria-pressed={q._id === activeProblemId}
                   >
                     <div className="flex justify-between items-center">
-                      <span className="truncate">{`Q${idx + 1}. ${q.title}`}</span>
+                      <span className="truncate">{`Q${idx + 1}. ${
+                        q.title
+                      }`}</span>
                       <span
                         className={`text-xs px-2 py-0.5 rounded ${
                           q.difficulty === "Easy"
@@ -473,7 +496,11 @@ export default function ProblemSolveView({
 
         {/* Editor and Output Panel */}
         {activeProblem && (
-          <div className={`flex flex-col h-full w-full ${fullEditor ? "w-full" : "flex-1"}`}>
+          <div
+            className={`flex flex-col h-full w-full ${
+              fullEditor ? "w-full" : "flex-1"
+            }`}
+          >
             <EnhancedEditorOutputPanel
               activeProblem={activeProblem}
               code={code}

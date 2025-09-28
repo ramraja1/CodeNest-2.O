@@ -8,17 +8,17 @@ dotenv.config();
 async function seed() {
   await mongoose.connect(process.env.MONGO_URI);
 
-  const existing = await User.findOne({ email: "owner@codenest.com" });
+  const existing = await User.findOne({ email: "owner@sistec.com" });
   if (existing) {
     console.log("Super Admin already exists");
     process.exit();
   }
 
-  const hashed = await bcrypt.hash("Pawan@12345", 10);
+  const hashed = await bcrypt.hash("password", 10);
 
   await User.create({
     name: "Platform Owner",
-    email: "owner@codenest.com",
+    email: "owner@sistec.com",
     password: hashed,
     role: "superadmin"
   });

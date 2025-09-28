@@ -93,10 +93,7 @@ function ContestInfoCard({ contest, onEdit, onDelete }) {
           </div>
         </div>
 
-        <div
-          className="flex flex-wrap gap-2 mt-4"
-          aria-label="Contest Tags"
-        >
+        <div className="flex flex-wrap gap-2 mt-4" aria-label="Contest Tags">
           {contest.tags.map((tag, idx) => (
             <Tag key={idx} label={tag} />
           ))}
@@ -247,14 +244,16 @@ export default function ContestOverview() {
   const { id, batchId } = useParams();
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-  const [showChatbotModal,setShowChatbotModal]=useState(false);
+  const [showChatbotModal, setShowChatbotModal] = useState(false);
   const [contest, setContest] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
-  const isSuccess =()=>{
+
+
+  const isSuccess = () => {
     fetchContestQuestions();
-  }
+  };
   // Modals state
 
   const [editContestToggle, setEditContestToggle] = useState(false);
@@ -270,7 +269,11 @@ export default function ContestOverview() {
   // Load data
   useEffect(() => {
     setLoading(true);
-    Promise.all([fetchContestInfo(), fetchContestQuestions(), fetchLeaderboard()]).finally(() => {
+    Promise.all([
+      fetchContestInfo(),
+      fetchContestQuestions(),
+      fetchLeaderboard(),
+    ]).finally(() => {
       setLoading(false);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -324,8 +327,10 @@ export default function ContestOverview() {
 
   const handleConfirmDelete = async () => {
     let url = "";
-    if (deleteType === "contest") url = `${server}/api/contests/${deleteTarget}`;
-    else if (deleteType === "question") url = `${server}/api/questions/${deleteTarget}`;
+    if (deleteType === "contest")
+      url = `${server}/api/contests/${deleteTarget}`;
+    else if (deleteType === "question")
+      url = `${server}/api/questions/${deleteTarget}`;
 
     try {
       const res = await fetch(url, {
@@ -396,12 +401,12 @@ export default function ContestOverview() {
   if (loading || !contest) return <ContestOverviewSkeleton />;
 
   return (
-    <main className="max-w-7xl mx-auto py-10 px-6 grid grid-cols-1 lg:grid-cols-3 gap-10 dark:bg-gray-950 min-h-screen">
+    <main className="max-w-7xl mx-auto py-10 px-6 grid grid-cols-1 lg:grid-cols-3 gap-10 min-h-screen bg-white text-gray-900">
       {/* Left Side: Contest info and Questions */}
       <section className="lg:col-span-2 flex flex-col gap-10">
         <button
           onClick={() => navigate(`/manage-batches/${batchId}/manage-contest`)}
-          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 text-sm font-semibold mb-2 transition-colors"
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 text-sm font-semibold mb-2 transition-colors"
           aria-label="Back to Contests"
         >
           <FaArrowLeft /> Back to Contests
@@ -413,29 +418,28 @@ export default function ContestOverview() {
           onDelete={() => askDelete("contest", id)}
         />
 
-        <article className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6">
-         <header className="flex justify-between items-center mb-6">
-  <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
-    Challenge Questions
-  </h2>
-  <div className="flex gap-2">
-    <ActionButton
-      onClick={() => setShowAddQuestion(true)}
-      className="bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500"
-      title="Add a new question manually"
-    >
-      <FaPlus className="mr-2" /> Add Question
-    </ActionButton>
-    <ActionButton
-      onClick={() => setShowChatbotModal(true)} // Open the ChatBot modal
-      className="bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500"
-      title="Let AI generate questions for you"
-    >
-      <span className="mr-2">🤖</span>Add with AI
-    </ActionButton>
-  </div>
-</header>
-
+        <article className="bg-white rounded-xl shadow-lg p-6">
+          <header className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-semibold text-gray-800">
+              Challenge Questions
+            </h2>
+            <div className="flex gap-2">
+              <ActionButton
+                onClick={() => setShowAddQuestion(true)}
+                className="bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500"
+                title="Add a new question manually"
+              >
+                <FaPlus className="mr-2" /> Add Question
+              </ActionButton>
+              <ActionButton
+                onClick={() => setShowChatbotModal(true)} // Open the ChatBot modal
+                className="bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500"
+                title="Let AI generate questions for you"
+              >
+                <span className="mr-2">🤖</span>Add with AI
+              </ActionButton>
+            </div>
+          </header>
 
           {questions.length === 0 ? (
             <EmptyState
@@ -469,20 +473,19 @@ export default function ContestOverview() {
       </section>
 
       {/* Right Side: Leaderboard */}
-      <aside className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 flex flex-col h-fit">
+      <aside className="bg-white rounded-xl shadow-lg p-6 flex flex-col h-fit">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-            Leaderboard
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-800">Leaderboard</h2>
           <div className="flex gap-3">
             <button
-              onClick={()=>{fetchLeaderboard()}}
+              onClick={() => {
+                fetchLeaderboard();
+              }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-emerald-600 text-white font-semibold text-sm shadow-md hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 transition"
               aria-label="Refresh Leaderboard"
               title="Refresh Leaderboard"
             >
               <FaSyncAlt />
-              
             </button>
             <button
               onClick={downloadLeaderboardPDF}
@@ -499,7 +502,7 @@ export default function ContestOverview() {
         <LeaderboardTable leaderboard={leaderboard} />
       </aside>
 
-      {/* Modals */}
+      {/* Modals (unchanged) */}
       {editContestToggle && (
         <EditContest
           contestId={id}
@@ -536,14 +539,14 @@ export default function ContestOverview() {
         />
       )}
       {showChatbotModal && (
-  <ChatBotModal
-    onClose={() => setShowChatbotModal(false)}
-    contestID={id}
-    addSuccess={isSuccess}
-  />
-)}
+        <ChatBotModal
+          onClose={() => setShowChatbotModal(false)}
+          contestID={id}
+          addSuccess={isSuccess}
+        />
+      )}
 
- <RobotAssistant onClick={() => setShowBot(true)} size={80} />
+      <RobotAssistant onClick={() => setShowBot(true)} size={80} />
     </main>
   );
 }

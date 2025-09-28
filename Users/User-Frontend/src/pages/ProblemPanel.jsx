@@ -31,7 +31,7 @@ export default function ProblemPanel({ problem, darkMode }) {
       {problem.inputFormat && (
         <>
           <h3>Input Format</h3>
-          <pre className="bg-gray-50 text-gray-900 dark:bg-gray-800 p-3 rounded whitespace-pre-wrap">
+          <pre className=" p-3 rounded whitespace-pre-wrap">
             {problem.inputFormat}
           </pre>
         </>
@@ -40,7 +40,7 @@ export default function ProblemPanel({ problem, darkMode }) {
       {problem.outputFormat && (
         <>
           <h3>Output Format</h3>
-          <pre className="bg-gray-50 text-gray-900 dark:bg-gray-800 p-3 rounded whitespace-pre-wrap">
+          <pre className=" p-3 rounded whitespace-pre-wrap">
             {problem.outputFormat}
           </pre>
         </>
@@ -49,7 +49,7 @@ export default function ProblemPanel({ problem, darkMode }) {
       {problem.constraints && (
         <>
           <h3>Constraints</h3>
-          <pre className="bg-gray-50 text-gray-900 dark:bg-gray-800 p-3 rounded whitespace-pre-wrap">
+          <pre className=" p-3 rounded whitespace-pre-wrap">
             {problem.constraints}
           </pre>
         </>

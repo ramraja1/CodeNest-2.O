@@ -1,13 +1,13 @@
+/* eslint-disable no-useless-catch */
 import React, { useState, useEffect, useRef } from "react";
 
-export const ChatBotModal = ({ onClose, contestID , addSuccess }) => {
+export const ChatBotModal = ({ onClose, contestID, addSuccess }) => {
   const token = localStorage.getItem("token");
   const chatRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState([
     { from: "bot", text: "Hi there! Ask me to generate coding questions!" },
   ]);
-
   const server = import.meta.env.VITE_SERVER;
   const [input, setInput] = useState("");
 
@@ -19,62 +19,67 @@ export const ChatBotModal = ({ onClose, contestID , addSuccess }) => {
     "Add 3 tree traversal questions",
   ];
 
-  // Direct fetch call, not redux
-const generateQuestions = async (msg) => {
-  setIsLoading(true);
-  try {
-    const response = await fetch(`${server}/api/chatbot/question`, {
-      method: "POST",
-      
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ message: msg, contestID }),
-    });
+  // Direct fetch call
+  const generateQuestions = async (msg) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${server}/api/chatbot/question`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: msg, contestID }),
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to generate questions");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate questions");
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    const data = await response.json();
-    addSuccess();
-    return data;
-  } catch (error) {
-    throw error;
-  } finally {
-    setIsLoading(false);
-  }
-};
+  const sendMessage = async (msg = input.trim()) => {
+    if (!msg || typeof msg !== "string") return;
 
+    // Add user message
+    setMessages((prev) => [...prev, { from: "user", text: msg }]);
+    setInput("");
 
- const sendMessage = async (msg = input.trim()) => {
-  if (!msg) return;
-  setMessages((prev) => [...prev, { from: "user", text: msg }]);
-  setInput("");
-  // Add "thinking" animation
-  setMessages((prev) => [...prev, { from: "bot", text: "🤖 Thinking..." }]);
-  try {
-    const res = await generateQuestions(msg);
-    const botReply = res.message;
-    // Replace "Thinking..." with actual reply
-    setMessages((prev) => {
-      const withoutThinking = prev.slice(0, -1);
-      return [...withoutThinking, { from: "bot", text: botReply }];
-    });
+    // Add "thinking" animation
+    setMessages((prev) => [...prev, { from: "bot", text: "🤖 Thinking..." }]);
 
-    if (botReply?.toLowerCase().includes("saved")) {
-      addSuccess();
+    try {
+      const res = await generateQuestions(msg);
+      const botReply = res?.message || "No response from server";
+
+      // Replace "Thinking..." with actual reply
+      setMessages((prev) => {
+        const withoutThinking = prev.slice(0, -1);
+        return [...withoutThinking, { from: "bot", text: botReply }];
+      });
+
+      // Call success if bot reply indicates saved
+      if (botReply) {
+        console.log("working: ", botReply);
+        
+        addSuccess();
+      }
+    } catch (error) {
+      console.error("Chatbot error:", error);
+      setMessages((prev) => [
+        ...prev.slice(0, -1), // remove "Thinking..."
+        { from: "bot", text: "❌ Error connecting to server." },
+      ]);
     }
-  } catch (error) {
-    setMessages((prev) => [
-      ...prev.slice(0, -1), // remove "Thinking..."
-      { from: "bot", text: "❌ Error connecting to server." },
-    ]);
-  }
-};
-
+  };
 
   useEffect(() => {
     const escClose = (e) => e.key === "Escape" && onClose();
@@ -113,6 +118,7 @@ const generateQuestions = async (msg) => {
         <h2 className="text-xl font-semibold mb-3 text-center text-green-700">
           DSA Question AI Chatbot
         </h2>
+
         {/* Suggestions */}
         <div className="flex flex-wrap gap-2 mb-3">
           {suggestions.map((text, idx) => (
@@ -125,6 +131,7 @@ const generateQuestions = async (msg) => {
             </button>
           ))}
         </div>
+
         {/* Chat */}
         <div
           ref={chatRef}
@@ -139,22 +146,25 @@ const generateQuestions = async (msg) => {
                   : "bg-white border self-start"
               }`}
             >
-              {msg.text}
+              {typeof msg.text === "string" ? msg.text : JSON.stringify(msg.text)}
             </div>
           ))}
         </div>
+
         {/* Input */}
         <div className="flex items-center gap-2 mt-4">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") sendMessage(input);
+            }}
             placeholder="Ask me to generate questions..."
             className="flex-1 border border-gray-300 rounded-md px-4 py-2"
           />
           <button
-            onClick={sendMessage}
+            onClick={() => sendMessage(input)}
             disabled={isLoading}
             className={`bg-green-600 text-white px-4 py-2 rounded-lg transition ${
               isLoading ? "opacity-50 cursor-not-allowed" : "hover:bg-green-700"
