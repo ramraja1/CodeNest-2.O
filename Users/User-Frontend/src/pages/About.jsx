@@ -45,7 +45,7 @@ const AboutSection = () => {
             <li>Contest creation with manual and AI-powered question generation, live leaderboards, and anti-cheating tools</li>
             <li>Real-time coding environment featuring syntax highlighting, code completion, and plagiarism detection</li>
             <li>Detailed analytics for student progress and institutional performance</li>
-            <li>Resource sharing for study materials and batch-specific content</li>
+          
           </ul>
         </div>
 
