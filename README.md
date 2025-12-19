@@ -192,5 +192,34 @@ Project: **CodeNest Platform**
 Type: Coding Assessment & Learning Management System  
 
 ---
+## 🔗 Live Platform Links & Demo
+
+### 🌐 Live Application
+
+> ⚠️ Note: Some panels may require approved credentials.
+
+
+
+- **Admin Panel (Institutions / Teachers):**  
+  https://codenest-college.vercel.app/
+
+- **Student Panel:**  
+  https://codenest-pro.vercel.app/
+
+---
+
+### 🎥 Video Demonstration
+
+A complete walkthrough of the CodeNest platform covering:
+- Super Admin controls
+- Admin batch & contest creation
+- Student registration, contest participation & leaderboard
+
+📺 **Watch Demo Video:**  
+https://www.linkedin.com/posts/pawan-tiwari-922284246_coding-edtech-assessments-activity-7371625045036752896-cFG1?utm_source=share&utm_medium=member_desktop&rcm=ACoAADzooCoBsRsQazWpJPjrXhrfkjdPV5gw-FM
+---
+
+
+
 
 ### ⭐ If you find this project useful, give it a star!
