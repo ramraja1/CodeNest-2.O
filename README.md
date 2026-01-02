@@ -18,6 +18,8 @@ This structure ensures enterprise-level control, institutional scalability, and 
 
 ---
 
+
+
 ## 🧠 System Architecture
 
 CodeNest Platform
@@ -26,7 +28,7 @@ CodeNest Platform
 │ ├── College Approval
 │ ├── Subscription & Payments
 │ ├── Service Control
-│ └── Quality Assurance
+│ 
 │
 ├── Admin Panel (Institutions)
 │ ├── Batch Management
@@ -218,6 +220,8 @@ A complete walkthrough of the CodeNest platform covering:
 📺 **Watch Demo Video:**  
 https://www.linkedin.com/posts/pawan-tiwari-922284246_coding-edtech-assessments-activity-7371625045036752896-cFG1?utm_source=share&utm_medium=member_desktop&rcm=ACoAADzooCoBsRsQazWpJPjrXhrfkjdPV5gw-FM
 ---
+
+
 
 
 
