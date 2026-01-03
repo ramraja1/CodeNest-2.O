@@ -23,6 +23,8 @@ const corsOptions = {
   credentials: true, // allow cookies/auth headers
 };
 
+
+// from today we will find bug and make every api like industries code
 app.use(cors(corsOptions));
 app.use(express.json());
 app.get("/",(req,res)=>{
