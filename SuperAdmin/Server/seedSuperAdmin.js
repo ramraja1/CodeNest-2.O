@@ -8,7 +8,7 @@ dotenv.config();
 async function seed() {
   await mongoose.connect(process.env.MONGO_URI);
 
-  const existing = await User.findOne({ email: "owner@sistec.com" });
+  const existing = await User.findOne({ email: "owner@YourEmail.com" });
   if (existing) {
     console.log("Super Admin already exists");
     process.exit();
