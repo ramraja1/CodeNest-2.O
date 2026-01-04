@@ -14,11 +14,11 @@ async function seed() {
     process.exit();
   }
 
-  const hashed = await bcrypt.hash("password", 10);
+  const hashed = await bcrypt.hash("Your_Password", 10);
 
   await User.create({
     name: "Platform Owner",
-    email: "owner@sistec.com",
+    email: "owner@YourEmail.com",
     password: hashed,
     role: "superadmin"
   });
