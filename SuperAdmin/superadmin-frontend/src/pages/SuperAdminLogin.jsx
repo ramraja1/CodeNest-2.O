@@ -2,7 +2,6 @@ import { useState } from "react";
 import student3d from "../assets/login.png"; // your 3D PNG image with transparent bg
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import dotenv from "dotenv";
 export default function SuperAdminLogin() {
 
 
@@ -27,6 +26,10 @@ export default function SuperAdminLogin() {
       const data = await res.json();
 
       if (res.ok) {
+
+        if (!data.token) throw new Error("Token missing");
+
+
         localStorage.setItem("token", data.token);
        toast.success("Login Successfully")
         Navigate('/dashboard');
